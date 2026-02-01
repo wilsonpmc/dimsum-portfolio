@@ -1,0 +1,54 @@
+
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Portfolio OS</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+            :root { --bg: #0a0a0a; --panel: #141414; --accent: #c3a343; --text: #e0e0e0; }
+            body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; padding: 2vw; }
+            .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+            .card { background: var(--panel); border: 1px solid #222; padding: 20px; border-radius: 4px; }
+            h1, h2 { color: var(--accent); text-transform: uppercase; letter-spacing: 2px; font-size: 14px; margin-top: 0; }
+            .big-num { font-size: 32px; font-weight: bold; margin: 10px 0; }
+            table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+            th { text-align: left; color: #666; padding-bottom: 10px; text-transform: uppercase; font-size: 10px; }
+            td { padding: 8px 0; border-bottom: 1px solid #1f1f1f; }
+            .footer { margin-top: 40px; font-size: 10px; color: #444; text-align: center; text-transform: uppercase; }
+        </style>
+    </head>
+    <body>
+        <h1>System_Portfolio_v2.0</h1>
+        <div class="grid">
+            <div class="card">
+                <h2>Total Net Value</h2>
+                <div class="big-num">$54,480</div>
+                <div style="color: #888">RM 214,760</div>
+            </div>
+            <div class="card">
+                <h2>Total P/L</h2>
+                <div class="big-num" style="color:#ff5252">$-11,644</div>
+                <div style="color:#ff5252">-17.61% Performance</div>
+            </div>
+            <div class="card">
+                <h2>Allocation</h2>
+                <table>
+                    <tr><td>Stocks</td><td align="right">55%</td></tr>
+                    <tr><td>Crypto</td><td align="right">41%</td></tr>
+                    <tr><td>Cash</td><td align="right">5%</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <div style="margin-top:20px" class="card">
+            <h2>Equity & Assets</h2>
+            <table>
+                <thead><tr><th>Asset</th><th>Cost</th><th>Value</th><th>P/L</th></tr></thead>
+                <tbody><tr><td>NVDA</td><td>$8,764</td><td>$13,188</td><td style='color:#4caf50'>$+4,424 (+50%)</td></tr><tr><td>ACHR</td><td>$10,451</td><td>$9,505</td><td style='color:#ff5252'>$-946 (-9%)</td></tr><tr><td>AMD</td><td>$3,882</td><td>$7,102</td><td style='color:#4caf50'>$+3,220 (+83%)</td></tr><tr><td>ETH</td><td>$11,580</td><td>$9,444</td><td style='color:#ff5252'>$-2,136 (-18%)</td></tr><tr><td>CRV</td><td>$26,672</td><td>$10,541</td><td style='color:#ff5252'>$-16,131 (-60%)</td></tr><tr><td>HBAR</td><td>$2,235</td><td>$2,160</td><td style='color:#ff5252'>$-75 (-3%)</td></tr></tbody>
+            </table>
+        </div>
+
+        <div class="footer">Last Sync: 2026-02-01 09:49:51 UTC | RM Rate: 3.94</div>
+    </body>
+    </html>
+    

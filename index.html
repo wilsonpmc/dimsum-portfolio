@@ -9,7 +9,7 @@
         <style>
             :root { --bg: #ffffff; --text: #000000; --sub: #666; }
             body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; padding: 25px; }
-            header { font-family: 'JetBrains Mono', monospace; font-size: 14px; border: 1.5px solid #000; display: inline-block; padding: 6px 15px; margin-bottom: 40px; font-weight: 700; }
+            h1 { font-family: 'JetBrains Mono', monospace; font-size: 14px; border: 1.5px solid #000; display: inline-block; padding: 6px 15px; margin-bottom: 40px; text-transform: lowercase; font-weight: 700; }
             .summary { display: flex; flex-wrap: wrap; border-top: 2.2px solid #000; margin-bottom: 40px; }
             .item { flex: 1; min-width: 150px; padding: 25px 0; border-right: 1px solid #f0f0f0; }
             .label { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; color: var(--sub); text-transform: uppercase; margin-bottom: 8px; }
@@ -27,18 +27,17 @@
         </style>
     </head>
     <body>
-        <header>dimsum portfolio</header>
-        
+        <h1>dimsum portfolio</h1>
         <div class="summary">
             <div class="item">
                 <div class="label">Net Portfolio Value</div>
-                <div class="val">$53,311</div>
-                <div class="sub">RM 210,206</div>
+                <div class="val">$53,267</div>
+                <div class="sub">RM 210,031</div>
             </div>
             <div class="item" style="padding-left: 20px;">
                 <div class="label">Total Profit Loss</div>
-                <div class="val" style="color:#FF0000">-12,813</div>
-                <div class="sub" style="color:#FF0000">-19.38% Performance</div>
+                <div class="val" style="color:#FF0000">-12,857</div>
+                <div class="sub" style="color:#FF0000">-19.44% Performance</div>
             </div>
             <div class="item" style="padding-left: 20px;">
                 <div class="label">Total Liquidity</div>
@@ -46,63 +45,24 @@
                 <div class="sub">MYR 10,015</div>
             </div>
         </div>
-
         <div class="section-label">Equity Assets</div>
         <table>
             <thead><tr><th>Ticker</th><th>Cost</th><th>Market Val</th><th>P/L Absolute</th></tr></thead>
             <tbody>
-                
-            <tr>
-                <td><div class='asset'><img src='https://img.logo.dev/ticker/NVDA?token=pk_demo' onerror="this.src='https://via.placeholder.com/20?text=NVDA'">NVDA</div></td>
-                <td>$8,764</td>
-                <td>$13,188</td>
-                <td style='color:#008000; font-weight:700'>$+4,424 (+50%)</td>
-            </tr>
-            <tr>
-                <td><div class='asset'><img src='https://img.logo.dev/ticker/ACHR?token=pk_demo' onerror="this.src='https://via.placeholder.com/20?text=ACHR'">ACHR</div></td>
-                <td>$10,451</td>
-                <td>$9,505</td>
-                <td style='color:#FF0000; font-weight:700'>$-946 (-9%)</td>
-            </tr>
-            <tr>
-                <td><div class='asset'><img src='https://img.logo.dev/ticker/AMD?token=pk_demo' onerror="this.src='https://via.placeholder.com/20?text=AMD'">AMD</div></td>
-                <td>$3,882</td>
-                <td>$7,102</td>
-                <td style='color:#008000; font-weight:700'>$+3,220 (+83%)</td>
-            </tr>
-                <tr class="total-row"><td>STOCKS_TOTAL</td><td>$23,097</td><td>$29,795</td><td>$+6,698</td></tr>
+                <tr><td><div class='asset'><img src='https://logo.clearbit.com/nvidia.com' onerror="this.src='https://via.placeholder.com/20?text=NVDA'">NVDA</div></td><td>$8,764</td><td>$13,188</td><td style='color:#008000;font-weight:700'>$+4,424 (+50%)</td></tr><tr><td><div class='asset'><img src='https://logo.clearbit.com/archer.com' onerror="this.src='https://via.placeholder.com/20?text=ACHR'">ACHR</div></td><td>$10,451</td><td>$9,505</td><td style='color:#FF0000;font-weight:700'>$-946 (-9%)</td></tr><tr><td><div class='asset'><img src='https://logo.clearbit.com/amd.com' onerror="this.src='https://via.placeholder.com/20?text=AMD'">AMD</div></td><td>$3,882</td><td>$7,102</td><td style='color:#008000;font-weight:700'>$+3,220 (+83%)</td></tr>
+                <tr class="total-row"><td>STOCKS TOTAL</td><td>$23,097</td><td>$29,795</td><td>$+6,698</td></tr>
             </tbody>
         </table>
-
         <div class="section-label">Digital Ledger</div>
         <table>
             <thead><tr><th>Asset</th><th>Cost</th><th>Market Val</th><th>P/L Absolute</th></tr></thead>
             <tbody>
-                
-            <tr>
-                <td><div class='asset'><img src='https://assets.coingecko.com/coins/images/279/small/ethereum.png' onerror="this.src='https://via.placeholder.com/20?text=ETH'">ETH</div></td>
-                <td>$11,580</td>
-                <td>$8,747</td>
-                <td style='color:#FF0000; font-weight:700'>$-2,833 (-24%)</td>
-            </tr>
-            <tr>
-                <td><div class='asset'><img src='https://img.logo.dev/ticker/CRV?token=pk_demo' onerror="this.src='https://via.placeholder.com/20?text=CRV'">CRV</div></td>
-                <td>$26,672</td>
-                <td>$10,124</td>
-                <td style='color:#FF0000; font-weight:700'>$-16,548 (-62%)</td>
-            </tr>
-            <tr>
-                <td><div class='asset'><img src='https://img.logo.dev/ticker/HBAR?token=pk_demo' onerror="this.src='https://via.placeholder.com/20?text=HBAR'">HBAR</div></td>
-                <td>$2,235</td>
-                <td>$2,105</td>
-                <td style='color:#FF0000; font-weight:700'>$-130 (-6%)</td>
-            </tr>
-                <tr class="total-row"><td>CRYPTO_TOTAL</td><td>$40,487</td><td>$20,976</td><td>$-19,511</td></tr>
+                <tr><td><div class='asset'><img src='https://assets.coingecko.com/coins/images/279/small/ethereum.png' onerror="this.src='https://via.placeholder.com/20?text=ETH'">ETH</div></td><td>$11,580</td><td>$8,734</td><td style='color:#FF0000;font-weight:700'>$-2,846 (-25%)</td></tr><tr><td><div class='asset'><img src='https://assets.coingecko.com/coins/images/12124/small/Curve.png' onerror="this.src='https://via.placeholder.com/20?text=CRV'">CRV</div></td><td>$26,672</td><td>$10,093</td><td style='color:#FF0000;font-weight:700'>$-16,579 (-62%)</td></tr><tr><td><div class='asset'><img src='https://assets.coingecko.com/coins/images/3688/small/hbar.png' onerror="this.src='https://via.placeholder.com/20?text=HBAR'">HBAR</div></td><td>$2,235</td><td>$2,105</td><td style='color:#FF0000;font-weight:700'>$-130 (-6%)</td></tr>
+                <tr class="total-row"><td>CRYPTO TOTAL</td><td>$40,487</td><td>$20,932</td><td>$-19,555</td></tr>
             </tbody>
         </table>
-
         <footer>
-            TERMINAL_ID_SYNC // 2026-02-02 04:33 PM MYT // 1.00 USD : 3.94 MYR
+            SYNC MY // 2026-02-02 05:18 PM MYT // 1 USD : 3.94 MYR
         </footer>
     </body>
     </html>

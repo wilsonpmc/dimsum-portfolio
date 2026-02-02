@@ -1,10 +1,10 @@
 import requests
 import json
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # =========================================================================
-# Configuration (Keep your API Keys here)
+# Configuration
 # =========================================================================
 ALPHAVANTAGE_API_KEY = "98TR939RKXQ1MMKS"
 EXCHANGERATE_API_KEY = "390764610849850b23dfe230"
@@ -22,21 +22,20 @@ COST_BASIS = {
 
 CRYPTO_ACRONYMS = {"ethereum": "ETH", "curve-dao-token": "CRV", "hedera-hashgraph": "HBAR"}
 
-# =========================================================================
-# Data Fetching Logic
-# =========================================================================
+# Helper to get official brand icons
+def get_icon(symbol, is_crypto=False):
+    if is_crypto:
+        # Using a reliable crypto icon CDN
+        return f"https://cryptoicons.org/api/icon/{symbol.lower()}/200"
+    else:
+        # Using Clearbit for stock logos based on company domain
+        domains = {"NVDA": "nvidia.com", "ACHR": "archer.com", "AMD": "amd.com"}
+        domain = domains.get(symbol, f"{symbol.lower()}.com")
+        return f"https://logo.clearbit.com/{domain}"
 
-def get_stock_price(ticker):
-    url = f"https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={ticker}&apikey={ALPHAVANTAGE_API_KEY}"
-    try:
-        data = requests.get(url).json()
-        return float(data["Global Quote"]["05. price"])
-    except: return None
-
-def get_crypto_price(coin_id):
-    url = f"https://api.coingecko.com/api/v3/simple/price?ids={coin_id}&vs_currencies=usd"
-    try: return requests.get(url).json()[coin_id]["usd"]
-    except: return None
+# =========================================================================
+# Main Logic
+# =========================================================================
 
 def main():
     rate_resp = requests.get(f"https://v6.exchangerate-api.com/v6/{EXCHANGERATE_API_KEY}/latest/USD").json()
@@ -48,98 +47,123 @@ def main():
 
     # Process Stocks
     for t, u in PORTFOLIO["stocks"].items():
-        time.sleep(15) # Safety delay
-        p = get_stock_price(t)
-        c = COST_BASIS["stocks"][t]
+        time.sleep(15) 
+        p = get_stock_price(t); c = COST_BASIS["stocks"][t]
         s_cost += c
         if p:
             v = p * u
-            pnl = v - c
-            pct = (pnl/c*100)
             s_val += v
-            color = "#4caf50" if pnl >= 0 else "#ff5252"
-            s_rows += f"<tr><td>{t}</td><td>${c:,.0f}</td><td>${v:,.0f}</td><td style='color:{color}'>${pnl:+,.0f} ({pct:+.0f}%)</td></tr>"
+            pnl = v - c; pct = (pnl/c*100)
+            icon_url = get_icon(t)
+            s_rows += f"""
+            <tr>
+                <td><div class='asset-cell'><img src='{icon_url}' class='logo'>{t}</div></td>
+                <td>${c:,.0f}</td>
+                <td>${v:,.0f}</td>
+                <td style='font-weight:700'>${pnl:+,.0f} ({pct:+.0f}%)</td>
+            </tr>"""
 
     # Process Crypto
     for cid, u in PORTFOLIO["crypto"].items():
-        p = get_crypto_price(cid)
-        c = COST_BASIS["crypto"][cid]
+        p = get_crypto_price(cid); c = COST_BASIS["crypto"][cid]
         c_cost += c
         if p:
             v = p * u
-            pnl = v - c
-            pct = (pnl/c*100)
             c_val += v
-            color = "#4caf50" if pnl >= 0 else "#ff5252"
+            pnl = v - c; pct = (pnl/c*100)
             sym = CRYPTO_ACRONYMS.get(cid, cid[:3].upper())
-            c_rows += f"<tr><td>{sym}</td><td>${c:,.0f}</td><td>${v:,.0f}</td><td style='color:{color}'>${pnl:+,.0f} ({pct:+.0f}%)</td></tr>"
+            icon_url = get_icon(sym, is_crypto=True)
+            c_rows += f"""
+            <tr>
+                <td><div class='asset-cell'><img src='{icon_url}' class='logo'>{sym}</div></td>
+                <td>${c:,.0f}</td>
+                <td>${v:,.0f}</td>
+                <td style='font-weight:700'>${pnl:+,.0f} ({pct:+.0f}%)</td>
+            </tr>"""
 
-    total_cap = s_cost + c_cost + cash_usd
     total_val = s_val + c_val + cash_usd
+    total_cap = s_cost + c_cost + cash_usd
     net_pnl = total_val - total_cap
     net_pct = (net_pnl/total_cap*100)
-    pnl_color = "#4caf50" if net_pnl >= 0 else "#ff5252"
+    malaysia_time = (datetime.utcnow() + timedelta(hours=8)).strftime('%Y-%m-%d %H:%M')
 
-    # Diversity
-    s_per = (s_val/total_val*100); c_per = (c_val/total_val*100); cash_per = (cash_usd/total_val*100)
-
-    # PLTR-Inspired HTML Template
+    # HTML Output
     html_content = f"""
     <!DOCTYPE html>
-    <html>
+    <html lang="en">
     <head>
-        <title>Portfolio OS</title>
+        <meta charset="UTF-8">
+        <title>dimsum_portfolio</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;600;900&display=swap" rel="stylesheet">
         <style>
-            :root {{ --bg: #0a0a0a; --panel: #141414; --accent: #c3a343; --text: #e0e0e0; }}
-            body {{ background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; padding: 2vw; }}
-            .grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }}
-            .card {{ background: var(--panel); border: 1px solid #222; padding: 20px; border-radius: 4px; }}
-            h1, h2 {{ color: var(--accent); text-transform: uppercase; letter-spacing: 2px; font-size: 14px; margin-top: 0; }}
-            .big-num {{ font-size: 32px; font-weight: bold; margin: 10px 0; }}
-            table {{ width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }}
-            th {{ text-align: left; color: #666; padding-bottom: 10px; text-transform: uppercase; font-size: 10px; }}
-            td {{ padding: 8px 0; border-bottom: 1px solid #1f1f1f; }}
-            .footer {{ margin-top: 40px; font-size: 10px; color: #444; text-align: center; text-transform: uppercase; }}
+            :root {{ --bg: #ffffff; --text: #000000; --border: #000000; --sub: #666; }}
+            body {{ background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; padding: 40px; }}
+            h1 {{ font-family: 'JetBrains Mono', monospace; font-size: 14px; margin: 0 0 50px 0; border: 1px solid #000; display: inline-block; padding: 5px 12px; text-transform: lowercase; }}
+            .summary-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); border-top: 2px solid #000; margin-bottom: 60px; }}
+            .summary-item {{ padding: 30px 0; border-right: 1px solid #eee; }}
+            .label {{ font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--sub); margin-bottom: 12px; }}
+            .value {{ font-family: 'JetBrains Mono', monospace; font-size: 32px; font-weight: 700; letter-spacing: -1px; }}
+            .sub-value {{ font-size: 12px; color: var(--sub); margin-top: 4px; font-family: 'JetBrains Mono', monospace; }}
+            .section-label {{ font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; border-bottom: 1px solid #000; padding-bottom: 8px; margin-bottom: 20px; }}
+            table {{ width: 100%; border-collapse: collapse; margin-bottom: 60px; }}
+            th {{ text-align: left; font-size: 10px; color: #999; text-transform: uppercase; padding-bottom: 15px; font-weight: 400; }}
+            td {{ padding: 18px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; }}
+            .asset-cell {{ display: flex; align-items: center; gap: 12px; font-weight: 600; }}
+            .logo {{ width: 24px; height: 24px; border-radius: 50%; border: 1px solid #eee; background: #fff; object-fit: contain; }}
+            .total-row {{ font-family: 'JetBrains Mono', monospace; font-weight: 700; background: #000; color: #fff; }}
+            .total-row td {{ padding: 15px 10px; border: none; }}
+            footer {{ margin-top: 100px; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #ccc; text-align: left; }}
         </style>
     </head>
     <body>
-        <h1>System_Portfolio_v2.0</h1>
-        <div class="grid">
-            <div class="card">
-                <h2>Total Net Value</h2>
-                <div class="big-num">${total_val:,.0f}</div>
-                <div style="color: #888">RM {total_val*myr_rate:,.0f}</div>
+        <h1>dimsum_portfolio</h1>
+        
+        <div class="summary-grid">
+            <div class="summary-item">
+                <div class="label">Net_Value</div>
+                <div class="value">${total_val:,.0f}</div>
+                <div class="sub-value">RM {total_val*myr_rate:,.0f}</div>
             </div>
-            <div class="card">
-                <h2>Total P/L</h2>
-                <div class="big-num" style="color:{pnl_color}">${net_pnl:+,.0f}</div>
-                <div style="color:{pnl_color}">{net_pct:+.2f}% Performance</div>
+            <div class="summary-item" style="padding-left: 20px;">
+                <div class="label">P/L_Total</div>
+                <div class="value">{net_pnl:+,.0f}</div>
+                <div class="sub-value">{net_pct:+.2f}% Perf</div>
             </div>
-            <div class="card">
-                <h2>Allocation</h2>
-                <table>
-                    <tr><td>Stocks</td><td align="right">{s_per:.0f}%</td></tr>
-                    <tr><td>Crypto</td><td align="right">{c_per:.0f}%</td></tr>
-                    <tr><td>Cash</td><td align="right">{cash_per:.0f}%</td></tr>
-                </table>
+            <div class="summary-item" style="padding-left: 20px;">
+                <div class="label">Liquidity</div>
+                <div class="value">${cash_usd:,.0f}</div>
+                <div class="sub-value">MYR {cash_usd*myr_rate:,.0f}</div>
             </div>
         </div>
 
-        <div style="margin-top:20px" class="card">
-            <h2>Equity & Assets</h2>
-            <table>
-                <thead><tr><th>Asset</th><th>Cost</th><th>Value</th><th>P/L</th></tr></thead>
-                <tbody>{s_rows}{c_rows}</tbody>
-            </table>
-        </div>
+        <div class="section-label">EQUITY_MARKETS</div>
+        <table>
+            <thead><tr><th>Ticker</th><th>Cost</th><th>Market Val</th><th>P/L Absolute</th></tr></thead>
+            <tbody>
+                {s_rows}
+                <tr class="total-row"><td>TOTAL_EQUITY</td><td>${s_cost:,.0f}</td><td>${s_val:,.0f}</td><td>${(s_val-s_cost):+,.0f}</td></tr>
+            </tbody>
+        </table>
 
-        <div class="footer">Last Sync: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} UTC | RM Rate: {myr_rate:.2f}</div>
+        <div class="section-label">DIGITAL_LEDGER</div>
+        <table>
+            <thead><tr><th>Token</th><th>Cost</th><th>Market Val</th><th>P/L Absolute</th></tr></thead>
+            <tbody>
+                {c_rows}
+                <tr class="total-row"><td>TOTAL_CRYPTO</td><td>${c_cost:,.0f}</td><td>${c_val:,.0f}</td><td>${(c_val-c_cost):+,.0f}</td></tr>
+            </tbody>
+        </table>
+
+        <footer>
+            TERMINAL_ID_DIMSUM // {malaysia_time} MYT // 1.00_USD:{myr_rate:.2f}_MYR
+        </footer>
     </body>
     </html>
     """
     with open("index.html", "w") as f:
         f.write(html_content)
 
+# Note: Ensure get_stock_price and get_crypto_price functions remain at top
 if __name__ == "__main__":
     main()

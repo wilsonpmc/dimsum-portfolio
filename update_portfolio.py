@@ -23,7 +23,7 @@ COST_BASIS = {
 CRYPTO_ACRONYMS = {"ethereum": "ETH", "curve-dao-token": "CRV", "hedera-hashgraph": "HBAR"}
 
 # =========================================================================
-# Helper Functions (Defined first to prevent NameError)
+# Helper Functions
 # =========================================================================
 
 def get_stock_price(ticker):
@@ -42,40 +42,52 @@ def get_crypto_price(coin_id):
     except: return None
 
 def get_icon(symbol, is_crypto=False):
+    # Logo.dev is high-reliability for both tickers and tokens
     if is_crypto:
-        return f"https://cryptoicons.org/api/icon/{symbol.lower()}/200"
-    domains = {"NVDA": "nvidia.com", "ACHR": "archer.com", "AMD": "amd.com"}
-    return f"https://logo.clearbit.com/{domains.get(symbol, symbol.lower()+'.com')}"
+        if symbol == "ETH": return "https://assets.coingecko.com/coins/images/279/small/ethereum.png"
+        return f"https://img.logo.dev/ticker/{symbol}?token=pk_demo"
+    return f"https://img.logo.dev/ticker/{symbol}?token=pk_demo"
 
 # =========================================================================
-# Main Execution Logic
+# Main Logic
 # =========================================================================
 
 def main():
-    print("Initiating dimsum_portfolio sync node...")
+    print("Initiating sync node...")
     
     # Fetch FX Rate
-    rate_resp = requests.get(f"https://v6.exchangerate-api.com/v6/{EXCHANGERATE_API_KEY}/latest/USD").json()
-    myr_rate = rate_resp.get("conversion_rates", {}).get("MYR", 4.45)
+    try:
+        rate_resp = requests.get(f"https://v6.exchangerate-api.com/v6/{EXCHANGERATE_API_KEY}/latest/USD").json()
+        myr_rate = rate_resp["conversion_rates"]["MYR"]
+    except:
+        myr_rate = 4.45 
     
     cash_usd = PORTFOLIO["cash"]
     s_rows = ""; c_rows = ""
     s_cost = s_val = c_cost = c_val = 0
 
-    # 1. Equity Processing
+    # 1. Process Equity
     for t, u in PORTFOLIO["stocks"].items():
-        time.sleep(15) # Safety buffer for Alpha Vantage
+        time.sleep(15) # Wait for API limits
         p = get_stock_price(t)
         c = COST_BASIS["stocks"][t]
         s_cost += c
         if p:
             v = p * u
             s_val += v
-            pnl = v - c; pct = (pnl/c*100) if c > 0 else 0
-            icon = get_icon(t)
-            s_rows += f"<tr><td><div class='asset'><img src='{icon}'>{t}</div></td><td>${c:,.0f}</td><td>${v:,.0f}</td><td>${pnl:+,.0f} ({pct:+.0f}%)</td></tr>"
+            pnl = v - c
+            pct = (pnl/c*100) if c > 0 else 0
+            # COLOR LOGIC: Green for profit, Red for loss
+            clr = "#008000" if pnl >= 0 else "#FF0000"
+            s_rows += f"""
+            <tr>
+                <td><div class='asset'><img src='{get_icon(t)}' onerror="this.src='https://via.placeholder.com/20?text={t}'">{t}</div></td>
+                <td>${c:,.0f}</td>
+                <td>${v:,.0f}</td>
+                <td style='color:{clr}; font-weight:700'>${pnl:+,.0f} ({pct:+.0f}%)</td>
+            </tr>"""
 
-    # 2. Crypto Processing
+    # 2. Process Digital Assets
     for cid, u in PORTFOLIO["crypto"].items():
         p = get_crypto_price(cid)
         c = COST_BASIS["crypto"][cid]
@@ -83,95 +95,105 @@ def main():
         if p:
             v = p * u
             c_val += v
-            pnl = v - c; pct = (pnl/c*100) if c > 0 else 0
+            pnl = v - c
+            pct = (pnl/c*100) if c > 0 else 0
             sym = CRYPTO_ACRONYMS.get(cid, cid[:3].upper())
-            icon = get_icon(sym, is_crypto=True)
-            c_rows += f"<tr><td><div class='asset'><img src='{icon}'>{sym}</div></td><td>${c:,.0f}</td><td>${v:,.0f}</td><td>${pnl:+,.0f} ({pct:+.0f}%)</td></tr>"
+            clr = "#008000" if pnl >= 0 else "#FF0000"
+            c_rows += f"""
+            <tr>
+                <td><div class='asset'><img src='{get_icon(sym, True)}' onerror="this.src='https://via.placeholder.com/20?text={sym}'">{sym}</div></td>
+                <td>${c:,.0f}</td>
+                <td>${v:,.0f}</td>
+                <td style='color:{clr}; font-weight:700'>${pnl:+,.0f} ({pct:+.0f}%)</td>
+            </tr>"""
 
-    # 3. Overall Totals
+    # 3. Calculations & Time
     total_val = s_val + c_val + cash_usd
     total_cap = s_cost + c_cost + cash_usd
     net_pnl = total_val - total_cap
     net_pct = (net_pnl/total_cap*100) if total_cap > 0 else 0
+    pnl_clr = "#008000" if net_pnl >= 0 else "#FF0000"
+    
+    # Malaysia Time (UTC+8)
     myt_time = (datetime.utcnow() + timedelta(hours=8)).strftime('%Y-%m-%d %I:%M %p')
 
-    # 4. Generate AI-Inspired White/Black Dashboard
+    # 4. Final HTML Construction
     html_content = f"""
     <!DOCTYPE html>
     <html lang="en">
     <head>
         <meta charset="UTF-8">
-        <title>dimsum_portfolio</title>
+        <title>dimsum portfolio</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
         <style>
-            :root {{ --bg: #ffffff; --text: #000000; --sub: #666666; --border: #000000; }}
-            body {{ background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; padding: 40px; }}
-            header {{ font-family: 'JetBrains Mono', monospace; font-size: 14px; border: 1.5px solid #000; display: inline-block; padding: 6px 15px; text-transform: lowercase; margin-bottom: 50px; }}
-            .summary {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); border-top: 2px solid #000; margin-bottom: 60px; }}
-            .item {{ padding: 25px 0; border-right: 1px solid #eee; }}
+            :root {{ --bg: #ffffff; --text: #000000; --sub: #666; }}
+            body {{ background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; padding: 25px; }}
+            header {{ font-family: 'JetBrains Mono', monospace; font-size: 14px; border: 1.5px solid #000; display: inline-block; padding: 6px 15px; margin-bottom: 40px; font-weight: 700; }}
+            .summary {{ display: flex; flex-wrap: wrap; border-top: 2.2px solid #000; margin-bottom: 40px; }}
+            .item {{ flex: 1; min-width: 150px; padding: 25px 0; border-right: 1px solid #f0f0f0; }}
             .label {{ font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; color: var(--sub); text-transform: uppercase; margin-bottom: 8px; }}
-            .val {{ font-family: 'JetBrains Mono', monospace; font-size: 32px; font-weight: 700; letter-spacing: -1px; }}
-            .sub {{ font-size: 12px; color: var(--sub); font-family: 'JetBrains Mono', monospace; margin-top: 4px; }}
-            .section-label {{ font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; border-bottom: 1.5px solid #000; padding-bottom: 8px; margin: 40px 0 20px 0; text-transform: uppercase; }}
+            .val {{ font-family: 'JetBrains Mono', monospace; font-size: 28px; font-weight: 700; letter-spacing: -1px; }}
+            .sub {{ font-size: 11px; color: var(--sub); font-family: 'JetBrains Mono', monospace; }}
+            .section-label {{ font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; border-bottom: 1.5px solid #000; padding-bottom: 6px; margin: 40px 0 15px 0; text-transform: uppercase; }}
             table {{ width: 100%; border-collapse: collapse; }}
-            th {{ text-align: left; font-size: 10px; color: #999; text-transform: uppercase; padding-bottom: 15px; font-weight: 400; }}
-            td {{ padding: 18px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; }}
-            .asset {{ display: flex; align-items: center; gap: 12px; font-weight: 600; }}
-            .asset img {{ width: 22px; height: 22px; border-radius: 50%; background: #fff; border: 1px solid #eee; }}
+            th {{ text-align: left; font-size: 10px; color: #999; text-transform: uppercase; padding-bottom: 12px; font-weight: 400; }}
+            td {{ padding: 16px 0; border-bottom: 1px solid #f0f0f0; font-size: 13.5px; }}
+            .asset {{ display: flex; align-items: center; gap: 10px; font-weight: 600; }}
+            .asset img {{ width: 22px; height: 22px; border-radius: 50%; border: 1px solid #eee; background: #fff; object-fit: contain; }}
             .total-row {{ font-family: 'JetBrains Mono', monospace; font-weight: 700; background: #000; color: #fff; }}
-            .total-row td {{ padding: 15px 10px; border: none; }}
-            footer {{ margin-top: 80px; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #ccc; }}
+            .total-row td {{ padding: 14px 10px; border: none; }}
+            footer {{ margin-top: 80px; font-family: 'JetBrains Mono', monospace; font-size: 9px; color: #ccc; }}
         </style>
     </head>
     <body>
-        <header>dimsum_portfolio</header>
+        <header>dimsum portfolio</header>
         
         <div class="summary">
             <div class="item">
-                <div class="label">Net_Value</div>
+                <div class="label">Net Portfolio Value</div>
                 <div class="val">${total_val:,.0f}</div>
                 <div class="sub">RM {total_val*myr_rate:,.0f}</div>
             </div>
             <div class="item" style="padding-left: 20px;">
-                <div class="label">Total_Profit</div>
-                <div class="val">{net_pnl:+,.0f}</div>
-                <div class="sub">{net_pct:+.2f}% Perf</div>
+                <div class="label">Total Profit Loss</div>
+                <div class="val" style="color:{pnl_clr}">{net_pnl:+,.0f}</div>
+                <div class="sub" style="color:{pnl_clr}">{net_pct:+.2f}% Performance</div>
             </div>
             <div class="item" style="padding-left: 20px;">
-                <div class="label">Cash_Reserves</div>
+                <div class="label">Total Liquidity</div>
                 <div class="val">${cash_usd:,.0f}</div>
                 <div class="sub">MYR {cash_usd*myr_rate:,.0f}</div>
             </div>
         </div>
 
-        <div class="section-label">Equity_Segments</div>
+        <div class="section-label">Equity Assets</div>
         <table>
             <thead><tr><th>Ticker</th><th>Cost</th><th>Market Val</th><th>P/L Absolute</th></tr></thead>
             <tbody>
                 {s_rows}
-                <tr class="total-row"><td>TOTAL_EQUITY</td><td>${s_cost:,.0f}</td><td>${s_val:,.0f}</td><td>${(s_val-s_cost):+,.0f}</td></tr>
+                <tr class="total-row"><td>STOCKS_TOTAL</td><td>${s_cost:,.0f}</td><td>${s_val:,.0f}</td><td>${(s_val-s_cost):+,.0f}</td></tr>
             </tbody>
         </table>
 
-        <div class="section-label">Digital_Assets</div>
+        <div class="section-label">Digital Ledger</div>
         <table>
             <thead><tr><th>Asset</th><th>Cost</th><th>Market Val</th><th>P/L Absolute</th></tr></thead>
             <tbody>
                 {c_rows}
-                <tr class="total-row"><td>TOTAL_CRYPTO</td><td>${c_cost:,.0f}</td><td>${c_val:,.0f}</td><td>${(c_val-c_cost):+,.0f}</td></tr>
+                <tr class="total-row"><td>CRYPTO_TOTAL</td><td>${c_cost:,.0f}</td><td>${c_val:,.0f}</td><td>${(c_val-c_cost):+,.0f}</td></tr>
             </tbody>
         </table>
 
         <footer>
-            SYNC_NODE_MY // {myt_time} MYT // 1.00_USD : {myr_rate:.2f}_MYR
+            TERMINAL_ID_SYNC // {myt_time} MYT // 1.00 USD : {myr_rate:.2f} MYR
         </footer>
     </body>
     </html>
     """
     with open("index.html", "w") as f:
         f.write(html_content)
-    print("Dashboard updated successfully.")
+    print("Dashboard refreshed successfully.")
 
 if __name__ == "__main__":
     main()

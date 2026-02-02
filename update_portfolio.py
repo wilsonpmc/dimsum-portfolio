@@ -41,8 +41,7 @@ def get_crypto_price(coin_id):
         return requests.get(url).json()[coin_id]["usd"]
     except: return None
 
-def get_icon(symbol, is_crypto=False):
-    # Logo.dev is high-reliability for both tickers and tokens
+def get_icon(symbol):
     return f"https://img.logo.dev/ticker/{symbol}?token=pk_demo"
 
 # =========================================================================
@@ -50,7 +49,6 @@ def get_icon(symbol, is_crypto=False):
 # =========================================================================
 
 def main():
-    # Fetch FX Rate
     try:
         rate_resp = requests.get(f"https://v6.exchangerate-api.com/v6/{EXCHANGERATE_API_KEY}/latest/USD").json()
         myr_rate = rate_resp["conversion_rates"]["MYR"]
@@ -63,7 +61,7 @@ def main():
 
     # 1. Process Stocks
     for t, u in PORTFOLIO["stocks"].items():
-        time.sleep(15) # Wait for API limits
+        time.sleep(15) 
         p = get_stock_price(t)
         c = COST_BASIS["stocks"][t]
         s_cost += c
@@ -76,9 +74,9 @@ def main():
             s_rows += f"""
             <tr>
                 <td><div class='asset'><img src='{get_icon(t)}' onerror="this.src='https://ui-avatars.com/api/?name={t}&background=000&color=fff'">{t}</div></td>
-                <td>${c:,.0f}</td>
-                <td>${v:,.0f}</td>
-                <td style='color:{clr}; font-weight:700'>${pnl:+,.0f} ({pct:+.0f}%)</td>
+                <td>${c:,.0f}<br><small>RM {c*myr_rate:,.0f}</small></td>
+                <td>${v:,.0f}<br><small>RM {v*myr_rate:,.0f}</small></td>
+                <td style='color:{clr}; font-weight:700'>${pnl:+,.0f} ({pct:+.0f}%)<br><small style='color:#888'>RM {pnl*myr_rate:+,.0f}</small></td>
             </tr>"""
 
     # 2. Process Crypto
@@ -95,10 +93,10 @@ def main():
             clr = "#008000" if pnl >= 0 else "#FF0000"
             c_rows += f"""
             <tr>
-                <td><div class='asset'><img src='{get_icon(sym, True)}' onerror="this.src='https://ui-avatars.com/api/?name={sym}&background=000&color=fff'">{sym}</div></td>
-                <td>${c:,.0f}</td>
-                <td>${v:,.0f}</td>
-                <td style='color:{clr}; font-weight:700'>${pnl:+,.0f} ({pct:+.0f}%)</td>
+                <td><div class='asset'><img src='{get_icon(sym)}' onerror="this.src='https://ui-avatars.com/api/?name={sym}&background=000&color=fff'">{sym}</div></td>
+                <td>${c:,.0f}<br><small>RM {c*myr_rate:,.0f}</small></td>
+                <td>${v:,.0f}<br><small>RM {v*myr_rate:,.0f}</small></td>
+                <td style='color:{clr}; font-weight:700'>${pnl:+,.0f} ({pct:+.0f}%)<br><small style='color:#888'>RM {pnl*myr_rate:+,.0f}</small></td>
             </tr>"""
 
     total_val = s_val + c_val + cash_usd
@@ -106,10 +104,9 @@ def main():
     net_pnl = total_val - total_cap
     net_pct = (net_pnl/total_cap*100) if total_cap > 0 else 0
     pnl_clr = "#008000" if net_pnl >= 0 else "#FF0000"
-    
     myt_time = (datetime.utcnow() + timedelta(hours=8)).strftime('%Y-%m-%d %I:%M %p')
 
-    # 3. Final HTML Template
+    # 3. HTML Template with RM spacing
     html_content = f"""
     <!DOCTYPE html>
     <html lang="en">
@@ -125,16 +122,18 @@ def main():
             .summary {{ display: flex; flex-wrap: wrap; border-top: 2.2px solid #000; margin-bottom: 40px; }}
             .item {{ flex: 1; min-width: 150px; padding: 25px 0; border-right: 1px solid #f0f0f0; }}
             .label {{ font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; color: var(--sub); text-transform: uppercase; margin-bottom: 8px; }}
-            .val {{ font-family: 'JetBrains Mono', monospace; font-size: 28px; font-weight: 700; letter-spacing: -1px; }}
+            .val {{ font-family: 'JetBrains Mono', monospace; font-size: 26px; font-weight: 700; letter-spacing: -1px; }}
             .sub {{ font-size: 11px; color: var(--sub); font-family: 'JetBrains Mono', monospace; }}
             .section-label {{ font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; border-bottom: 1.5px solid #000; padding-bottom: 6px; margin: 40px 0 15px 0; text-transform: uppercase; }}
             table {{ width: 100%; border-collapse: collapse; }}
             th {{ text-align: left; font-size: 10px; color: #999; text-transform: uppercase; padding-bottom: 12px; font-weight: 400; }}
-            td {{ padding: 16px 0; border-bottom: 1px solid #f0f0f0; font-size: 13.5px; }}
+            td {{ padding: 12px 0; border-bottom: 1px solid #f0f0f0; font-size: 13px; line-height: 1.4; }}
+            small {{ font-family: 'JetBrains Mono', monospace; color: #888; font-size: 10px; font-weight: 400; }}
             .asset {{ display: flex; align-items: center; gap: 10px; font-weight: 600; }}
             .asset img {{ width: 22px; height: 22px; border-radius: 50%; border: 1px solid #eee; background: #fff; object-fit: contain; }}
             .total-row {{ font-family: 'JetBrains Mono', monospace; font-weight: 700; background: #000; color: #fff; }}
             .total-row td {{ padding: 14px 10px; border: none; }}
+            .total-row small {{ color: #bbb; }}
             footer {{ margin-top: 80px; font-family: 'JetBrains Mono', monospace; font-size: 9px; color: #ccc; }}
         </style>
     </head>
@@ -162,7 +161,12 @@ def main():
             <thead><tr><th>Ticker</th><th>Cost</th><th>Market Val</th><th>P/L Absolute</th></tr></thead>
             <tbody>
                 {s_rows}
-                <tr class="total-row"><td>STOCKS TOTAL</td><td>${s_cost:,.0f}</td><td>${s_val:,.0f}</td><td>${(s_val-s_cost):+,.0f}</td></tr>
+                <tr class="total-row">
+                    <td>STOCKS TOTAL</td>
+                    <td>${s_cost:,.0f}<br><small>RM {s_cost*myr_rate:,.0f}</small></td>
+                    <td>${s_val:,.0f}<br><small>RM {s_val*myr_rate:,.0f}</small></td>
+                    <td>${(s_val-s_cost):+,.0f}<br><small>RM {(s_val-s_cost)*myr_rate:+,.0f}</small></td>
+                </tr>
             </tbody>
         </table>
         <div class="section-label">Digital Ledger</div>
@@ -170,11 +174,16 @@ def main():
             <thead><tr><th>Asset</th><th>Cost</th><th>Market Val</th><th>P/L Absolute</th></tr></thead>
             <tbody>
                 {c_rows}
-                <tr class="total-row"><td>CRYPTO TOTAL</td><td>${c_cost:,.0f}</td><td>${c_val:,.0f}</td><td>${(c_val-c_cost):+,.0f}</td></tr>
+                <tr class="total-row">
+                    <td>CRYPTO TOTAL</td>
+                    <td>${c_cost:,.0f}<br><small>RM {c_cost*myr_rate:,.0f}</small></td>
+                    <td>${c_val:,.0f}<br><small>RM {c_val*myr_rate:,.0f}</small></td>
+                    <td>${(c_val-c_cost):+,.0f}<br><small>RM {(c_val-c_cost)*myr_rate:+,.0f}</small></td>
+                </tr>
             </tbody>
         </table>
         <footer>
-            SYNC MY // {myt_time} MYT // 1 USD : {myr_rate:.2f} MYR
+            SYNC MY // {myt_time} MYT // 1.00 USD : {myr_rate:.2f} MYR
         </footer>
     </body>
     </html>

@@ -21,11 +21,6 @@ COST_BASIS = {
 }
 
 CRYPTO_ACRONYMS = {"ethereum": "ETH", "curve-dao-token": "CRV", "hedera-hashgraph": "HBAR"}
-CRYPTO_LOGOS = {
-    "ETH": "https://assets.coingecko.com/coins/images/279/small/ethereum.png",
-    "CRV": "https://assets.coingecko.com/coins/images/12124/small/Curve.png",
-    "HBAR": "https://assets.coingecko.com/coins/images/3688/small/hbar.png"
-}
 
 # =========================================================================
 # Helper Functions
@@ -35,58 +30,86 @@ def get_stock_price(ticker):
     url = f"https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={ticker}&apikey={ALPHAVANTAGE_API_KEY}"
     try:
         data = requests.get(url).json()
-        return float(data["Global Quote"]["05. price"])
+        if "Global Quote" in data:
+            return float(data["Global Quote"]["05. price"])
+        return None
     except: return None
 
 def get_crypto_price(coin_id):
     url = f"https://api.coingecko.com/api/v3/simple/price?ids={coin_id}&vs_currencies=usd"
-    try: return requests.get(url).json()[coin_id]["usd"]
+    try:
+        return requests.get(url).json()[coin_id]["usd"]
     except: return None
 
 def get_icon(symbol, is_crypto=False):
-    if is_crypto:
-        return CRYPTO_LOGOS.get(symbol, "https://assets.coingecko.com/coins/images/1/small/bitcoin.png")
-    # Using Clearbit for stocks (Domain-based)
-    domains = {"NVDA": "nvidia.com", "ACHR": "archer.com", "AMD": "amd.com"}
-    return f"https://logo.clearbit.com/{domains.get(symbol, symbol.lower()+'.com')}"
+    # Logo.dev is high-reliability for both tickers and tokens
+    return f"https://img.logo.dev/ticker/{symbol}?token=pk_demo"
+
+# =========================================================================
+# Main Execution Logic
+# =========================================================================
 
 def main():
-    rate_resp = requests.get(f"https://v6.exchangerate-api.com/v6/{EXCHANGERATE_API_KEY}/latest/USD").json()
-    myr_rate = rate_resp["conversion_rates"]["MYR"]
+    # Fetch FX Rate
+    try:
+        rate_resp = requests.get(f"https://v6.exchangerate-api.com/v6/{EXCHANGERATE_API_KEY}/latest/USD").json()
+        myr_rate = rate_resp["conversion_rates"]["MYR"]
+    except:
+        myr_rate = 4.45 
     
     cash_usd = PORTFOLIO["cash"]
     s_rows = ""; c_rows = ""
     s_cost = s_val = c_cost = c_val = 0
 
-    # 1. Stocks
+    # 1. Process Stocks
     for t, u in PORTFOLIO["stocks"].items():
-        time.sleep(15) 
-        p = get_stock_price(t); c = COST_BASIS["stocks"][t]
+        time.sleep(15) # Wait for API limits
+        p = get_stock_price(t)
+        c = COST_BASIS["stocks"][t]
         s_cost += c
         if p:
-            v = p * u; s_val += v
-            pnl = v - c; pct = (pnl/c*100)
+            v = p * u
+            s_val += v
+            pnl = v - c
+            pct = (pnl/c*100) if c > 0 else 0
             clr = "#008000" if pnl >= 0 else "#FF0000"
-            s_rows += f"<tr><td><div class='asset'><img src='{get_icon(t)}' onerror=\"this.src='https://via.placeholder.com/20?text={t}'\">{t}</div></td><td>${c:,.0f}</td><td>${v:,.0f}</td><td style='color:{clr};font-weight:700'>${pnl:+,.0f} ({pct:+.0f}%)</td></tr>"
+            s_rows += f"""
+            <tr>
+                <td><div class='asset'><img src='{get_icon(t)}' onerror="this.src='https://ui-avatars.com/api/?name={t}&background=000&color=fff'">{t}</div></td>
+                <td>${c:,.0f}</td>
+                <td>${v:,.0f}</td>
+                <td style='color:{clr}; font-weight:700'>${pnl:+,.0f} ({pct:+.0f}%)</td>
+            </tr>"""
 
-    # 2. Crypto
+    # 2. Process Crypto
     for cid, u in PORTFOLIO["crypto"].items():
-        p = get_crypto_price(cid); c = COST_BASIS["crypto"][cid]
+        p = get_crypto_price(cid)
+        c = COST_BASIS["crypto"][cid]
         c_cost += c
         if p:
-            v = p * u; c_val += v
-            pnl = v - c; pct = (pnl/c*100)
+            v = p * u
+            c_val += v
+            pnl = v - c
+            pct = (pnl/c*100) if c > 0 else 0
             sym = CRYPTO_ACRONYMS.get(cid, cid[:3].upper())
             clr = "#008000" if pnl >= 0 else "#FF0000"
-            c_rows += f"<tr><td><div class='asset'><img src='{get_icon(sym, True)}' onerror=\"this.src='https://via.placeholder.com/20?text={sym}'\">{sym}</div></td><td>${c:,.0f}</td><td>${v:,.0f}</td><td style='color:{clr};font-weight:700'>${pnl:+,.0f} ({pct:+.0f}%)</td></tr>"
+            c_rows += f"""
+            <tr>
+                <td><div class='asset'><img src='{get_icon(sym, True)}' onerror="this.src='https://ui-avatars.com/api/?name={sym}&background=000&color=fff'">{sym}</div></td>
+                <td>${c:,.0f}</td>
+                <td>${v:,.0f}</td>
+                <td style='color:{clr}; font-weight:700'>${pnl:+,.0f} ({pct:+.0f}%)</td>
+            </tr>"""
 
     total_val = s_val + c_val + cash_usd
     total_cap = s_cost + c_cost + cash_usd
     net_pnl = total_val - total_cap
-    net_pct = (net_pnl/total_cap*100)
+    net_pct = (net_pnl/total_cap*100) if total_cap > 0 else 0
     pnl_clr = "#008000" if net_pnl >= 0 else "#FF0000"
-    malaysia_time = (datetime.utcnow() + timedelta(hours=8)).strftime('%Y-%m-%d %I:%M %p')
+    
+    myt_time = (datetime.utcnow() + timedelta(hours=8)).strftime('%Y-%m-%d %I:%M %p')
 
+    # 3. Final HTML Template
     html_content = f"""
     <!DOCTYPE html>
     <html lang="en">
@@ -98,7 +121,7 @@ def main():
         <style>
             :root {{ --bg: #ffffff; --text: #000000; --sub: #666; }}
             body {{ background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; padding: 25px; }}
-            h1 {{ font-family: 'JetBrains Mono', monospace; font-size: 14px; border: 1.5px solid #000; display: inline-block; padding: 6px 15px; margin-bottom: 40px; text-transform: lowercase; font-weight: 700; }}
+            header {{ font-family: 'JetBrains Mono', monospace; font-size: 14px; border: 1.5px solid #000; display: inline-block; padding: 6px 15px; margin-bottom: 40px; font-weight: 700; }}
             .summary {{ display: flex; flex-wrap: wrap; border-top: 2.2px solid #000; margin-bottom: 40px; }}
             .item {{ flex: 1; min-width: 150px; padding: 25px 0; border-right: 1px solid #f0f0f0; }}
             .label {{ font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; color: var(--sub); text-transform: uppercase; margin-bottom: 8px; }}
@@ -116,7 +139,7 @@ def main():
         </style>
     </head>
     <body>
-        <h1>dimsum portfolio</h1>
+        <header>dimsum portfolio</header>
         <div class="summary">
             <div class="item">
                 <div class="label">Net Portfolio Value</div>
@@ -126,7 +149,7 @@ def main():
             <div class="item" style="padding-left: 20px;">
                 <div class="label">Total Profit Loss</div>
                 <div class="val" style="color:{pnl_clr}">{net_pnl:+,.0f}</div>
-                <div class="sub" style="color:{pnl_clr}">{net_pct:+.2f}% Performance</div>
+                <div class="sub" style="color:{pnl_clr}">{net_pct:+.2f}%</div>
             </div>
             <div class="item" style="padding-left: 20px;">
                 <div class="label">Total Liquidity</div>
@@ -151,7 +174,7 @@ def main():
             </tbody>
         </table>
         <footer>
-            SYNC MY // {malaysia_time} MYT // 1 USD : {myr_rate:.2f} MYR
+            SYNC MY // {myt_time} MYT // 1 USD : {myr_rate:.2f} MYR
         </footer>
     </body>
     </html>

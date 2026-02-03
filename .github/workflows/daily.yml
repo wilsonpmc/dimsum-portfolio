@@ -1,29 +1,39 @@
 name: Daily Sync
+
 on:
   schedule:
-    - cron: '0 16 * * *'
-  workflow_dispatch:
-  
+    - cron: '0 16 * * *' # Runs at 12:00 AM Malaysian Time
+  workflow_dispatch: # Allows you to run it manually
+
 permissions:
-  contents: write
+  contents: write # Crucial: Allows the bot to save your history.json
 
 jobs:
-  run-script:
+  build:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
-      - name: Setup Python
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
-      - name: Run
+
+      - name: Install Dependencies
         run: |
           pip install requests
-          python update_portfolio.py
-    - name: Deploy and Save History
+
+      - name: Run Portfolio Update
+        run: python update_portfolio.py
+
+      - name: Commit and Push Changes
         run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git add index.html history.json
-          git commit -m "Auto-update dashboard and lock daily history" || echo "No changes to commit"
+          git commit -m "Locked daily history update: $(date)" || echo "No changes to commit"
           git push

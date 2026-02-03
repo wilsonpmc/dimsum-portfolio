@@ -43,7 +43,6 @@ def get_icon(symbol):
     return f"https://img.logo.dev/ticker/{symbol}?token=pk_demo"
 
 def main():
-    # 1. Fetch Market Data
     try:
         rate_resp = requests.get(f"https://v6.exchangerate-api.com/v6/{EXCHANGERATE_API_KEY}/latest/USD").json()
         myr_rate = rate_resp["conversion_rates"]["MYR"]
@@ -63,7 +62,7 @@ def main():
             v = p * u; s_val += v
             pnl = v - c; pct = (pnl/c*100)
             clr = "#008000" if pnl >= 0 else "#FF0000"
-            s_rows += f"<tr><td><div class='asset'><img src='{get_icon(t)}' onerror=\"this.src='https://ui-avatars.com/api/?name={t}&background=000&color=fff'\">{t}</div></td><td>${v:,.0f}<br><small>RM {v*myr_rate:,.0f}</small></td><td style='color:{clr};font-weight:700'>${pnl:+,.0f} ({pct:+.0f}%)</td></tr>"
+            s_rows += f"<tr><td><div class='asset'><img src='{get_icon(t)}' onerror=\"this.src='https://ui-avatars.com/api/?name={t}&background=000&color=fff'\">{t}</div></td><td>${v:,.0f}<br><small>RM {v*myr_rate:,.0f}</small></td><td style='color:{clr};font-weight:700'>${pnl:+,.0f} ({pct:+.0f}%)<br><small style='color:#888'>RM {pnl*myr_rate:+,.0f}</small></td></tr>"
 
     # Process Digital Assets
     for cid, u in PORTFOLIO["crypto"].items():
@@ -74,7 +73,7 @@ def main():
             pnl = v - c; pct = (pnl/c*100)
             sym = CRYPTO_ACRONYMS.get(cid, cid[:3].upper())
             clr = "#008000" if pnl >= 0 else "#FF0000"
-            c_rows += f"<tr><td><div class='asset'><img src='{get_icon(sym)}' onerror=\"this.src='https://ui-avatars.com/api/?name={sym}&background=000&color=fff'\">{sym}</div></td><td>${v:,.0f}<br><small>RM {v*myr_rate:,.0f}</small></td><td style='color:{clr};font-weight:700'>${pnl:+,.0f} ({pct:+.0f}%)</td></tr>"
+            c_rows += f"<tr><td><div class='asset'><img src='{get_icon(sym)}' onerror=\"this.src='https://ui-avatars.com/api/?name={sym}&background=000&color=fff'\">{sym}</div></td><td>${v:,.0f}<br><small>RM {v*myr_rate:,.0f}</small></td><td style='color:{clr};font-weight:700'>${pnl:+,.0f} ({pct:+.0f}%)<br><small style='color:#888'>RM {pnl*myr_rate:+,.0f}</small></td></tr>"
 
     total_val = s_val + c_val + cash_usd
     total_cap = s_cost + c_cost + cash_usd
@@ -82,22 +81,19 @@ def main():
     net_pct = (net_pnl/total_cap*100)
     pnl_clr = "#008000" if net_pnl >= 0 else "#FF0000"
     
-    today_str = (datetime.utcnow() + timedelta(hours=8)).strftime('%Y-%m-%d')
-    myt_time = (datetime.utcnow() + timedelta(hours=8)).strftime('%Y-%m-%d %I:%M %p')
+    now_myt = datetime.utcnow() + timedelta(hours=8)
+    today_str = now_myt.strftime('%Y-%m-%d')
+    myt_time_str = now_myt.strftime('%Y-%m-%d %I:%M %p')
 
-    # 2. History Tracking Logic
+    # History Tracking
     history_file = 'history.json'
+    history = {}
     if os.path.exists(history_file):
         try:
             with open(history_file, 'r') as f:
                 history = json.load(f)
-        except:
-            history = {}
-    else:
-        history = {}
-
+        except: pass
     history[today_str] = {"val": total_val, "pnl": net_pnl}
-    
     with open(history_file, 'w') as f:
         json.dump(history, f)
 
@@ -105,9 +101,9 @@ def main():
     for date in sorted(history.keys(), reverse=True):
         d = history[date]
         clr = "#008000" if d['pnl'] >= 0 else "#FF0000"
-        hist_rows += f"<tr><td>{date}</td><td>${d['val']:,.0f}</td><td style='color:{clr}'>${d['pnl']:+,.0f}</td></tr>"
+        hist_rows += f"<tr><td>{date}</td><td>${d['val']:,.0f}<br><small>RM {d['val']*myr_rate:,.0f}</small></td><td style='color:{clr}'>${d['pnl']:+,.0f}<br><small style='color:#888'>RM {d['pnl']*myr_rate:+,.0f}</small></td></tr>"
 
-    # 3. HTML Content
+    # HTML Construction
     html_content = f"""
     <!DOCTYPE html>
     <html lang="en">
@@ -132,12 +128,15 @@ def main():
             small {{ font-family: 'JetBrains Mono', monospace; color: #888; font-size: 10px; }}
             .asset {{ display: flex; align-items: center; gap: 10px; font-weight: 600; }}
             .asset img {{ width: 22px; height: 22px; border-radius: 50%; border: 1px solid #eee; background: #fff; }}
-            .hist-table {{ background: #fafafa; border-radius: 4px; }}
+            .total-row {{ font-family: 'JetBrains Mono', monospace; font-weight: 700; background: #000; color: #fff; }}
+            .total-row td {{ padding: 14px 10px; border: none; }}
+            .total-row small {{ color: #bbb; }}
+            .hist-table {{ background: #fafafa; }}
             .hist-table td {{ padding: 15px 10px; }}
         </style>
     </head>
     <body>
-        <div class="sync-remark">SYNC NODE MY // {myt_time} MYT</div>
+        <div class="sync-remark">SYNC NODE MY // {myt_time_str} MYT</div>
         <header>dimsum portfolio</header>
 
         <div class="summary">
@@ -149,7 +148,7 @@ def main():
             <div class="item" style="padding-left: 20px;">
                 <div class="label">Total Profit Loss</div>
                 <div class="val" style="color:{pnl_clr}">{net_pnl:+,.0f}</div>
-                <div class="sub" style="font-size:11px; color:{pnl_clr}">{net_pct:+.2f}%</div>
+                <div class="sub" style="color:{pnl_clr}">{net_pct:+.2f}%</div>
             </div>
             <div class="item" style="padding-left: 20px;">
                 <div class="label">Total Liquidity</div>
@@ -161,16 +160,30 @@ def main():
         <div class="section-label">Equity Assets</div>
         <table>
             <thead><tr><th>Ticker</th><th>Market Val</th><th>P/L Absolute</th></tr></thead>
-            <tbody>{s_rows}</tbody>
+            <tbody>
+                {s_rows}
+                <tr class="total-row">
+                    <td>EQUITY TOTAL</td>
+                    <td>${s_val:,.0f}<br><small>RM {s_val*myr_rate:,.0f}</small></td>
+                    <td>${(s_val-s_cost):+,.0f}<br><small>RM {(s_val-s_cost)*myr_rate:+,.0f}</small></td>
+                </tr>
+            </tbody>
         </table>
 
         <div class="section-label">Digital Ledger</div>
         <table>
             <thead><tr><th>Asset</th><th>Market Val</th><th>P/L Absolute</th></tr></thead>
-            <tbody>{c_rows}</tbody>
+            <tbody>
+                {c_rows}
+                <tr class="total-row">
+                    <td>CRYPTO TOTAL</td>
+                    <td>${c_val:,.0f}<br><small>RM {c_val*myr_rate:,.0f}</small></td>
+                    <td>${(c_val-c_cost):+,.0f}<br><small>RM {(c_val-c_cost)*myr_rate:+,.0f}</small></td>
+                </tr>
+            </tbody>
         </table>
 
-        <div class="section-label">Daily History Log</div>
+        <div class="section-label">Locked Daily History</div>
         <table class="hist-table">
             <thead><tr><th>Date</th><th>Net Value</th><th>Total P/L</th></tr></thead>
             <tbody>{hist_rows}</tbody>

@@ -7,111 +7,64 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
         <style>
-            :root { --bg: #ffffff; --text: #000000; --sub: #666; }
-            body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; padding: 25px; }
-            header { font-family: 'JetBrains Mono', monospace; font-size: 14px; border: 1.5px solid #000; display: inline-block; padding: 6px 15px; margin-bottom: 40px; font-weight: 700; }
+            :root { --bg: #ffffff; --orange: #ff6600; --sub: #666; }
+            body { background: var(--bg); color: #000; font-family: 'Inter', sans-serif; margin: 0; padding: 25px; }
+            .sync-remark { color: var(--orange); font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; margin-bottom: 5px; text-transform: uppercase; }
+            header { font-family: 'JetBrains Mono', monospace; font-size: 14px; border: 1.5px solid #000; display: inline-block; padding: 6px 15px; margin-bottom: 30px; font-weight: 700; }
             .summary { display: flex; flex-wrap: wrap; border-top: 2.2px solid #000; margin-bottom: 40px; }
             .item { flex: 1; min-width: 150px; padding: 25px 0; border-right: 1px solid #f0f0f0; }
             .label { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; color: var(--sub); text-transform: uppercase; margin-bottom: 8px; }
             .val { font-family: 'JetBrains Mono', monospace; font-size: 26px; font-weight: 700; letter-spacing: -1px; }
-            .sub { font-size: 11px; color: var(--sub); font-family: 'JetBrains Mono', monospace; }
             .section-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; border-bottom: 1.5px solid #000; padding-bottom: 6px; margin: 40px 0 15px 0; text-transform: uppercase; }
-            table { width: 100%; border-collapse: collapse; }
-            th { text-align: left; font-size: 10px; color: #999; text-transform: uppercase; padding-bottom: 12px; font-weight: 400; }
-            td { padding: 12px 0; border-bottom: 1px solid #f0f0f0; font-size: 13px; line-height: 1.4; }
-            small { font-family: 'JetBrains Mono', monospace; color: #888; font-size: 10px; font-weight: 400; }
+            table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+            th { text-align: left; font-size: 10px; color: #999; text-transform: uppercase; padding-bottom: 10px; font-weight: 400; }
+            td { padding: 14px 0; border-bottom: 1px solid #f0f0f0; font-size: 13px; line-height: 1.4; }
+            small { font-family: 'JetBrains Mono', monospace; color: #888; font-size: 10px; }
             .asset { display: flex; align-items: center; gap: 10px; font-weight: 600; }
-            .asset img { width: 22px; height: 22px; border-radius: 50%; border: 1px solid #eee; background: #fff; object-fit: contain; }
-            .total-row { font-family: 'JetBrains Mono', monospace; font-weight: 700; background: #000; color: #fff; }
-            .total-row td { padding: 14px 10px; border: none; }
-            .total-row small { color: #bbb; }
-            footer { margin-top: 80px; font-family: 'JetBrains Mono', monospace; font-size: 9px; color: #ccc; }
+            .asset img { width: 22px; height: 22px; border-radius: 50%; border: 1px solid #eee; background: #fff; }
+            .hist-table { background: #fafafa; border-radius: 4px; }
+            .hist-table td { padding: 15px 10px; }
         </style>
     </head>
     <body>
+        <div class="sync-remark">SYNC NODE MY // 2026-02-03 05:48 PM MYT</div>
         <header>dimsum portfolio</header>
+
         <div class="summary">
             <div class="item">
                 <div class="label">Net Portfolio Value</div>
-                <div class="val">$54,257</div>
-                <div class="sub">RM 213,936</div>
+                <div class="val">$53,487</div>
+                <div class="sub" style="font-size:11px; color:#666">RM 210,846</div>
             </div>
             <div class="item" style="padding-left: 20px;">
                 <div class="label">Total Profit Loss</div>
-                <div class="val" style="color:#FF0000">-11,867</div>
-                <div class="sub" style="color:#FF0000">-17.95%</div>
+                <div class="val" style="color:#FF0000">-12,637</div>
+                <div class="sub" style="font-size:11px; color:#FF0000">-19.11%</div>
             </div>
             <div class="item" style="padding-left: 20px;">
                 <div class="label">Total Liquidity</div>
                 <div class="val">$2,540</div>
-                <div class="sub">MYR 10,015</div>
+                <div class="sub" style="font-size:11px; color:#666">MYR 10,013</div>
             </div>
         </div>
+
         <div class="section-label">Equity Assets</div>
         <table>
-            <thead><tr><th>Ticker</th><th>Cost</th><th>Market Val</th><th>P/L Absolute</th></tr></thead>
-            <tbody>
-                
-            <tr>
-                <td><div class='asset'><img src='https://img.logo.dev/ticker/NVDA?token=pk_demo' onerror="this.src='https://ui-avatars.com/api/?name=NVDA&background=000&color=fff'">NVDA</div></td>
-                <td>$8,764<br><small>RM 34,556</small></td>
-                <td>$13,188<br><small>RM 52,000</small></td>
-                <td style='color:#008000; font-weight:700'>$+4,424 (+50%)<br><small style='color:#888'>RM +17,444</small></td>
-            </tr>
-            <tr>
-                <td><div class='asset'><img src='https://img.logo.dev/ticker/ACHR?token=pk_demo' onerror="this.src='https://ui-avatars.com/api/?name=ACHR&background=000&color=fff'">ACHR</div></td>
-                <td>$10,451<br><small>RM 41,208</small></td>
-                <td>$9,505<br><small>RM 37,479</small></td>
-                <td style='color:#FF0000; font-weight:700'>$-946 (-9%)<br><small style='color:#888'>RM -3,729</small></td>
-            </tr>
-            <tr>
-                <td><div class='asset'><img src='https://img.logo.dev/ticker/AMD?token=pk_demo' onerror="this.src='https://ui-avatars.com/api/?name=AMD&background=000&color=fff'">AMD</div></td>
-                <td>$3,882<br><small>RM 15,307</small></td>
-                <td>$7,102<br><small>RM 28,003</small></td>
-                <td style='color:#008000; font-weight:700'>$+3,220 (+83%)<br><small style='color:#888'>RM +12,696</small></td>
-            </tr>
-                <tr class="total-row">
-                    <td>STOCKS TOTAL</td>
-                    <td>$23,097<br><small>RM 91,071</small></td>
-                    <td>$29,795<br><small>RM 117,482</small></td>
-                    <td>$+6,698<br><small>RM +26,410</small></td>
-                </tr>
-            </tbody>
+            <thead><tr><th>Ticker</th><th>Market Val</th><th>P/L Absolute</th></tr></thead>
+            <tbody><tr><td><div class='asset'><img src='https://img.logo.dev/ticker/NVDA?token=pk_demo' onerror="this.src='https://ui-avatars.com/api/?name=NVDA&background=000&color=fff'">NVDA</div></td><td>$12,807<br><small>RM 50,486</small></td><td style='color:#008000;font-weight:700'>$+4,043 (+46%)</td></tr><tr><td><div class='asset'><img src='https://img.logo.dev/ticker/ACHR?token=pk_demo' onerror="this.src='https://ui-avatars.com/api/?name=ACHR&background=000&color=fff'">ACHR</div></td><td>$9,320<br><small>RM 36,740</small></td><td style='color:#FF0000;font-weight:700'>$-1,131 (-11%)</td></tr><tr><td><div class='asset'><img src='https://img.logo.dev/ticker/AMD?token=pk_demo' onerror="this.src='https://ui-avatars.com/api/?name=AMD&background=000&color=fff'">AMD</div></td><td>$7,388<br><small>RM 29,124</small></td><td style='color:#008000;font-weight:700'>$+3,506 (+90%)</td></tr></tbody>
         </table>
+
         <div class="section-label">Digital Ledger</div>
         <table>
-            <thead><tr><th>Asset</th><th>Cost</th><th>Market Val</th><th>P/L Absolute</th></tr></thead>
-            <tbody>
-                
-            <tr>
-                <td><div class='asset'><img src='https://img.logo.dev/ticker/ETH?token=pk_demo' onerror="this.src='https://ui-avatars.com/api/?name=ETH&background=000&color=fff'">ETH</div></td>
-                <td>$11,580<br><small>RM 45,660</small></td>
-                <td>$9,205<br><small>RM 36,294</small></td>
-                <td style='color:#FF0000; font-weight:700'>$-2,375 (-21%)<br><small style='color:#888'>RM -9,366</small></td>
-            </tr>
-            <tr>
-                <td><div class='asset'><img src='https://img.logo.dev/ticker/CRV?token=pk_demo' onerror="this.src='https://ui-avatars.com/api/?name=CRV&background=000&color=fff'">CRV</div></td>
-                <td>$26,672<br><small>RM 105,168</small></td>
-                <td>$10,508<br><small>RM 41,434</small></td>
-                <td style='color:#FF0000; font-weight:700'>$-16,164 (-61%)<br><small style='color:#888'>RM -63,733</small></td>
-            </tr>
-            <tr>
-                <td><div class='asset'><img src='https://img.logo.dev/ticker/HBAR?token=pk_demo' onerror="this.src='https://ui-avatars.com/api/?name=HBAR&background=000&color=fff'">HBAR</div></td>
-                <td>$2,235<br><small>RM 8,813</small></td>
-                <td>$2,209<br><small>RM 8,711</small></td>
-                <td style='color:#FF0000; font-weight:700'>$-26 (-1%)<br><small style='color:#888'>RM -102</small></td>
-            </tr>
-                <tr class="total-row">
-                    <td>CRYPTO TOTAL</td>
-                    <td>$40,487<br><small>RM 159,640</small></td>
-                    <td>$21,922<br><small>RM 86,439</small></td>
-                    <td>$-18,565<br><small>RM -73,201</small></td>
-                </tr>
-            </tbody>
+            <thead><tr><th>Asset</th><th>Market Val</th><th>P/L Absolute</th></tr></thead>
+            <tbody><tr><td><div class='asset'><img src='https://img.logo.dev/ticker/ETH?token=pk_demo' onerror="this.src='https://ui-avatars.com/api/?name=ETH&background=000&color=fff'">ETH</div></td><td>$8,939<br><small>RM 35,237</small></td><td style='color:#FF0000;font-weight:700'>$-2,641 (-23%)</td></tr><tr><td><div class='asset'><img src='https://img.logo.dev/ticker/CRV?token=pk_demo' onerror="this.src='https://ui-avatars.com/api/?name=CRV&background=000&color=fff'">CRV</div></td><td>$10,362<br><small>RM 40,849</small></td><td style='color:#FF0000;font-weight:700'>$-16,310 (-61%)</td></tr><tr><td><div class='asset'><img src='https://img.logo.dev/ticker/HBAR?token=pk_demo' onerror="this.src='https://ui-avatars.com/api/?name=HBAR&background=000&color=fff'">HBAR</div></td><td>$2,131<br><small>RM 8,399</small></td><td style='color:#FF0000;font-weight:700'>$-104 (-5%)</td></tr></tbody>
         </table>
-        <footer>
-            SYNC MY // 2026-02-03 12:50 AM MYT // 1.00 USD : 3.94 MYR
-        </footer>
+
+        <div class="section-label">Daily History Log</div>
+        <table class="hist-table">
+            <thead><tr><th>Date</th><th>Net Value</th><th>Total P/L</th></tr></thead>
+            <tbody><tr><td>2026-02-03</td><td>$53,487</td><td style='color:#FF0000'>$-12,637</td></tr></tbody>
+        </table>
     </body>
     </html>
     

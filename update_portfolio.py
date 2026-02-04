@@ -41,6 +41,11 @@ def get_crypto_price(coin_id):
     try: return requests.get(url).json()[coin_id]["usd"]
     except: return None
 
+def format_currency(val, is_pnl=False, decimals=2):
+    """Creates a fixed-width container to align $ signs vertically."""
+    prefix = "+" if is_pnl and val > 0 else ""
+    return f"<div class='cur-container'><span>$</span><span>{prefix}{val:,.{decimals}f}</span></div>"
+
 def get_icon(symbol):
     return f"https://img.logo.dev/ticker/{symbol}?token=pk_demo"
 
@@ -68,10 +73,10 @@ def main():
             s_rows += f"""
             <tr>
                 <td><div class='asset'><img src='{get_icon(t)}' onerror="this.src='https://ui-avatars.com/api/?name={t}&background=000&color=fff'">{t}</div></td>
-                <td class='mono'>${avg:10,.2f}</td>
-                <td class='mono'>${p:10,.2f}</td>
-                <td class='mono'>${v:10,.0f} <small>(RM {v*myr_rate:,.0f})</small></td>
-                <td class='mono' style='color:{clr};font-weight:700'>${pnl:+10,.0f} ({pct:+.0f}%) <small style='color:#888'>[RM {pnl*myr_rate:+,.0f}]</small></td>
+                <td class='mono'>{format_currency(avg)}</td>
+                <td class='mono'>{format_currency(p)}</td>
+                <td class='mono'>{format_currency(v, decimals=0)} <small>(RM {v*myr_rate:,.0f})</small></td>
+                <td class='mono' style='color:{clr};font-weight:700'>{format_currency(pnl, True, 0)} ({pct:+.0f}%) <small style='color:#888'>[RM {pnl*myr_rate:+,.0f}]</small></td>
             </tr>"""
 
     # Crypto Processing
@@ -87,22 +92,23 @@ def main():
             c_rows += f"""
             <tr>
                 <td><div class='asset'><img src='{get_icon(sym)}' onerror="this.src='https://ui-avatars.com/api/?name={sym}&background=000&color=fff'">{sym}</div></td>
-                <td class='mono'>${avg:10,.4f}</td>
-                <td class='mono'>${p:10,.4f}</td>
-                <td class='mono'>${v:10,.0f} <small>(RM {v*myr_rate:,.0f})</small></td>
-                <td class='mono' style='color:{clr};font-weight:700'>${pnl:+10,.0f} ({pct:+.0f}%) <small style='color:#888'>[RM {pnl*myr_rate:+,.0f}]</small></td>
+                <td class='mono'>{format_currency(avg, decimals=4)}</td>
+                <td class='mono'>{format_currency(p, decimals=4)}</td>
+                <td class='mono'>{format_currency(v, decimals=0)} <small>(RM {v*myr_rate:,.0f})</small></td>
+                <td class='mono' style='color:{clr};font-weight:700'>{format_currency(pnl, True, 0)} ({pct:+.0f}%) <small style='color:#888'>[RM {pnl*myr_rate:+,.0f}]</small></td>
             </tr>"""
 
     total_val = s_val + c_val + cash_usd
     total_cap = s_cost + c_cost + cash_usd
     net_pnl = total_val - total_cap
     net_pct = (net_pnl/total_cap*100)
-    pnl_clr = "#008000" if net_pnl >= 0 else "#FF0000"
     
-    # Goal Metrics
+    # Section PNL %
+    s_pnl = s_val - s_cost; s_pct = (s_pnl/s_cost*100) if s_cost > 0 else 0
+    c_pnl = c_val - c_cost; c_pct = (c_pnl/c_cost*100) if c_cost > 0 else 0
+
     goal_pct = min((total_val / GOAL_USD) * 100, 100)
     distance_usd = max(GOAL_USD - total_val, 0)
-
     now_myt = datetime.utcnow() + timedelta(hours=8)
     today_str = now_myt.strftime('%Y-%m-%d')
     myt_time_str = now_myt.strftime('%Y-%m-%d %I:%M %p')
@@ -121,7 +127,7 @@ def main():
     for date in sorted(history.keys(), reverse=True):
         d = history[date]
         clr = "#008000" if d['pnl'] >= 0 else "#FF0000"
-        hist_rows += f"<tr><td>{date}</td><td class='mono'>${d['val']:10,.0f} <small>(RM {d['val']*myr_rate:,.0f})</small></td><td class='mono' style='color:{clr}'>${d['pnl']:+10,.0f} <small style='color:#888'>[RM {d['pnl']*myr_rate:+,.0f}]</small></td></tr>"
+        hist_rows += f"<tr><td>{date}</td><td class='mono'>{format_currency(d['val'], decimals=0)} <small>(RM {d['val']*myr_rate:,.0f})</small></td><td class='mono' style='color:{clr}'>{format_currency(d['pnl'], True, 0)} <small style='color:#888'>[RM {d['pnl']*myr_rate:+,.0f}]</small></td></tr>"
 
     html_content = f"""
     <!DOCTYPE html>
@@ -143,12 +149,13 @@ def main():
             .sub-rm {{ font-size: 11px; color: var(--sub); font-family: 'JetBrains Mono', monospace; margin-top: 4px; display: block; }}
             .goal-container {{ margin-bottom: 40px; border-bottom: 1px solid #eee; padding-bottom: 20px; }}
             .progress-bar {{ width: 100%; height: 8px; background: #eee; border-radius: 4px; overflow: hidden; margin: 10px 0; }}
-            .progress-fill {{ width: {goal_pct}%; height: 100%; background: #000; transition: width 0.5s ease; }}
+            .progress-fill {{ width: {goal_pct}%; height: 100%; background: #000; }}
             .section-label {{ font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; border-bottom: 1.5px solid #000; padding-bottom: 6px; margin: 40px 0 15px 0; text-transform: uppercase; }}
             table {{ width: 100%; border-collapse: collapse; margin-bottom: 30px; }}
             th {{ text-align: left; font-size: 10px; color: #999; text-transform: uppercase; padding-bottom: 10px; font-weight: 400; }}
             td {{ padding: 14px 0; border-bottom: 1px solid #f0f0f0; font-size: 13px; }}
-            .mono {{ font-family: 'JetBrains Mono', monospace; white-space: pre; }}
+            .mono {{ font-family: 'JetBrains Mono', monospace; }}
+            .cur-container {{ display: inline-flex; justify-content: space-between; width: 110px; }}
             small {{ font-family: 'JetBrains Mono', monospace; color: #888; font-size: 10px; margin-left: 8px; }}
             .asset {{ display: flex; align-items: center; gap: 10px; font-weight: 600; }}
             .asset img {{ width: 22px; height: 22px; border-radius: 50%; border: 1px solid #eee; background: #fff; }}
@@ -171,8 +178,8 @@ def main():
             </div>
             <div class="item" style="padding-left: 20px;">
                 <div class="label">Total Profit Loss</div>
-                <div class="val" style="color:{pnl_clr}">{net_pnl:+,.0f}</div>
-                <span class="sub-rm" style="color:{pnl_clr}">{net_pct:+.2f}% / RM {net_pnl*myr_rate:+,.0f}</span>
+                <div class="val" style="color:{'#008000' if net_pnl >= 0 else '#FF0000'}">{net_pnl:+,.0f}</div>
+                <span class="sub-rm" style="color:{'#008000' if net_pnl >= 0 else '#FF0000'}">{net_pct:+.2f}% / RM {net_pnl*myr_rate:+,.0f}</span>
             </div>
             <div class="item" style="padding-left: 20px;">
                 <div class="label">Cash on Hand</div>
@@ -197,10 +204,10 @@ def main():
                 {s_rows}
                 <tr class="total-row">
                     <td>EQUITY TOTAL</td>
-                    <td class='mono'>-</td>
-                    <td class='mono'>-</td>
-                    <td class='mono'>${s_val:10,.0f} <small>(RM {s_val*myr_rate:,.0f})</small></td>
-                    <td class='mono'>${(s_val-s_cost):+10,.0f} <small>(RM {(s_val-s_cost)*myr_rate:+,.0f})</small></td>
+                    <td><div class='cur-container'><span> </span><span>-</span></div></td>
+                    <td><div class='cur-container'><span> </span><span>-</span></div></td>
+                    <td>{format_currency(s_val, decimals=0)} <small>(RM {s_val*myr_rate:,.0f})</small></td>
+                    <td>{format_currency(s_pnl, True, 0)} ({s_pct:+.0f}%) <small>(RM {s_pnl*myr_rate:+,.0f})</small></td>
                 </tr>
             </tbody>
         </table>
@@ -212,10 +219,10 @@ def main():
                 {c_rows}
                 <tr class="total-row">
                     <td>CRYPTO TOTAL</td>
-                    <td class='mono'>-</td>
-                    <td class='mono'>-</td>
-                    <td class='mono'>${c_val:10,.0f} <small>(RM {c_val*myr_rate:,.0f})</small></td>
-                    <td class='mono'>${(c_val-c_cost):+10,.0f} <small>(RM {(c_val-c_cost)*myr_rate:+,.0f})</small></td>
+                    <td><div class='cur-container'><span> </span><span>-</span></div></td>
+                    <td><div class='cur-container'><span> </span><span>-</span></div></td>
+                    <td>{format_currency(c_val, decimals=0)} <small>(RM {c_val*myr_rate:,.0f})</small></td>
+                    <td>{format_currency(c_pnl, True, 0)} ({c_pct:+.0f}%) <small>(RM {c_pnl*myr_rate:+,.0f})</small></td>
                 </tr>
             </tbody>
         </table>

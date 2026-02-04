@@ -10,6 +10,8 @@ from datetime import datetime, timedelta
 ALPHAVANTAGE_API_KEY = "98TR939RKXQ1MMKS"
 EXCHANGERATE_API_KEY = "390764610849850b23dfe230"
 
+GOAL_USD = 250000
+
 PORTFOLIO = {
     "stocks": {"NVDA": 69, "ACHR": 1322, "AMD": 30},
     "crypto": {"ethereum": 3.89944, "curve-dao-token": 36252, "hedera-hashgraph": 23473},
@@ -53,27 +55,43 @@ def main():
     s_rows = ""; c_rows = ""
     s_cost = s_val = c_cost = c_val = 0
 
-    # Process Equity Assets
+    # Equity Processing
     for t, u in PORTFOLIO["stocks"].items():
         time.sleep(15) 
         p = get_stock_price(t); c = COST_BASIS["stocks"][t]
+        avg = c / u
         s_cost += c
         if p:
             v = p * u; s_val += v
             pnl = v - c; pct = (pnl/c*100)
             clr = "#008000" if pnl >= 0 else "#FF0000"
-            s_rows += f"<tr><td><div class='asset'><img src='{get_icon(t)}' onerror=\"this.src='https://ui-avatars.com/api/?name={t}&background=000&color=fff'\">{t}</div></td><td>${v:,.0f} <small>(RM {v*myr_rate:,.0f})</small></td><td style='color:{clr};font-weight:700'>${pnl:+,.0f} ({pct:+.0f}%) <small style='color:#888'>[RM {pnl*myr_rate:+,.0f}]</small></td></tr>"
+            s_rows += f"""
+            <tr>
+                <td><div class='asset'><img src='{get_icon(t)}' onerror="this.src='https://ui-avatars.com/api/?name={t}&background=000&color=fff'">{t}</div></td>
+                <td class='mono'>${avg:10,.2f}</td>
+                <td class='mono'>${p:10,.2f}</td>
+                <td class='mono'>${v:10,.0f} <small>(RM {v*myr_rate:,.0f})</small></td>
+                <td class='mono' style='color:{clr};font-weight:700'>${pnl:+10,.0f} ({pct:+.0f}%) <small style='color:#888'>[RM {pnl*myr_rate:+,.0f}]</small></td>
+            </tr>"""
 
-    # Process Crypto Assets
+    # Crypto Processing
     for cid, u in PORTFOLIO["crypto"].items():
         p = get_crypto_price(cid); c = COST_BASIS["crypto"][cid]
+        avg = c / u
         c_cost += c
         if p:
             v = p * u; c_val += v
             pnl = v - c; pct = (pnl/c*100)
             sym = CRYPTO_ACRONYMS.get(cid, cid[:3].upper())
             clr = "#008000" if pnl >= 0 else "#FF0000"
-            c_rows += f"<tr><td><div class='asset'><img src='{get_icon(sym)}' onerror=\"this.src='https://ui-avatars.com/api/?name={sym}&background=000&color=fff'\">{sym}</div></td><td>${v:,.0f} <small>(RM {v*myr_rate:,.0f})</small></td><td style='color:{clr};font-weight:700'>${pnl:+,.0f} ({pct:+.0f}%) <small style='color:#888'>[RM {pnl*myr_rate:+,.0f}]</small></td></tr>"
+            c_rows += f"""
+            <tr>
+                <td><div class='asset'><img src='{get_icon(sym)}' onerror="this.src='https://ui-avatars.com/api/?name={sym}&background=000&color=fff'">{sym}</div></td>
+                <td class='mono'>${avg:10,.4f}</td>
+                <td class='mono'>${p:10,.4f}</td>
+                <td class='mono'>${v:10,.0f} <small>(RM {v*myr_rate:,.0f})</small></td>
+                <td class='mono' style='color:{clr};font-weight:700'>${pnl:+10,.0f} ({pct:+.0f}%) <small style='color:#888'>[RM {pnl*myr_rate:+,.0f}]</small></td>
+            </tr>"""
 
     total_val = s_val + c_val + cash_usd
     total_cap = s_cost + c_cost + cash_usd
@@ -81,6 +99,10 @@ def main():
     net_pct = (net_pnl/total_cap*100)
     pnl_clr = "#008000" if net_pnl >= 0 else "#FF0000"
     
+    # Goal Metrics
+    goal_pct = min((total_val / GOAL_USD) * 100, 100)
+    distance_usd = max(GOAL_USD - total_val, 0)
+
     now_myt = datetime.utcnow() + timedelta(hours=8)
     today_str = now_myt.strftime('%Y-%m-%d')
     myt_time_str = now_myt.strftime('%Y-%m-%d %I:%M %p')
@@ -90,20 +112,17 @@ def main():
     history = {}
     if os.path.exists(history_file):
         try:
-            with open(history_file, 'r') as f:
-                history = json.load(f)
+            with open(history_file, 'r') as f: history = json.load(f)
         except: pass
     history[today_str] = {"val": total_val, "pnl": net_pnl}
-    with open(history_file, 'w') as f:
-        json.dump(history, f)
+    with open(history_file, 'w') as f: json.dump(history, f)
 
     hist_rows = ""
     for date in sorted(history.keys(), reverse=True):
         d = history[date]
         clr = "#008000" if d['pnl'] >= 0 else "#FF0000"
-        hist_rows += f"<tr><td>{date}</td><td>${d['val']:,.0f} <small>(RM {d['val']*myr_rate:,.0f})</small></td><td style='color:{clr}'>${d['pnl']:+,.0f} <small style='color:#888'>[RM {d['pnl']*myr_rate:+,.0f}]</small></td></tr>"
+        hist_rows += f"<tr><td>{date}</td><td class='mono'>${d['val']:10,.0f} <small>(RM {d['val']*myr_rate:,.0f})</small></td><td class='mono' style='color:{clr}'>${d['pnl']:+10,.0f} <small style='color:#888'>[RM {d['pnl']*myr_rate:+,.0f}]</small></td></tr>"
 
-    # HTML Generation
     html_content = f"""
     <!DOCTYPE html>
     <html lang="en">
@@ -117,15 +136,19 @@ def main():
             body {{ background: var(--bg); color: #000; font-family: 'Inter', sans-serif; margin: 0; padding: 25px; }}
             .sync-remark {{ color: var(--orange); font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; margin-bottom: 5px; text-transform: uppercase; }}
             header {{ font-family: 'JetBrains Mono', monospace; font-size: 14px; border: 1.5px solid #000; display: inline-block; padding: 6px 15px; margin-bottom: 30px; font-weight: 700; }}
-            .summary {{ display: flex; flex-wrap: wrap; border-top: 2.2px solid #000; margin-bottom: 40px; }}
+            .summary {{ display: flex; flex-wrap: wrap; border-top: 2.2px solid #000; margin-bottom: 20px; }}
             .item {{ flex: 1; min-width: 150px; padding: 25px 0; border-right: 1px solid #f0f0f0; }}
             .label {{ font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; color: var(--sub); text-transform: uppercase; margin-bottom: 8px; }}
             .val {{ font-family: 'JetBrains Mono', monospace; font-size: 26px; font-weight: 700; letter-spacing: -1px; }}
             .sub-rm {{ font-size: 11px; color: var(--sub); font-family: 'JetBrains Mono', monospace; margin-top: 4px; display: block; }}
+            .goal-container {{ margin-bottom: 40px; border-bottom: 1px solid #eee; padding-bottom: 20px; }}
+            .progress-bar {{ width: 100%; height: 8px; background: #eee; border-radius: 4px; overflow: hidden; margin: 10px 0; }}
+            .progress-fill {{ width: {goal_pct}%; height: 100%; background: #000; transition: width 0.5s ease; }}
             .section-label {{ font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; border-bottom: 1.5px solid #000; padding-bottom: 6px; margin: 40px 0 15px 0; text-transform: uppercase; }}
             table {{ width: 100%; border-collapse: collapse; margin-bottom: 30px; }}
             th {{ text-align: left; font-size: 10px; color: #999; text-transform: uppercase; padding-bottom: 10px; font-weight: 400; }}
             td {{ padding: 14px 0; border-bottom: 1px solid #f0f0f0; font-size: 13px; }}
+            .mono {{ font-family: 'JetBrains Mono', monospace; white-space: pre; }}
             small {{ font-family: 'JetBrains Mono', monospace; color: #888; font-size: 10px; margin-left: 8px; }}
             .asset {{ display: flex; align-items: center; gap: 10px; font-weight: 600; }}
             .asset img {{ width: 22px; height: 22px; border-radius: 50%; border: 1px solid #eee; background: #fff; }}
@@ -134,7 +157,6 @@ def main():
             .total-row small {{ color: #bbb; }}
             .hist-table {{ background: var(--table-grey); }}
             .hist-table td {{ padding: 15px 10px; border-bottom: 1px solid #ddd; }}
-            .hist-table th {{ padding: 10px; }}
         </style>
     </head>
     <body>
@@ -153,34 +175,47 @@ def main():
                 <span class="sub-rm" style="color:{pnl_clr}">{net_pct:+.2f}% / RM {net_pnl*myr_rate:+,.0f}</span>
             </div>
             <div class="item" style="padding-left: 20px;">
-                <div class="label">Total Liquidity</div>
+                <div class="label">Cash on Hand</div>
                 <div class="val">${cash_usd:,.0f}</div>
                 <span class="sub-rm">MYR {cash_usd*myr_rate:,.0f}</span>
             </div>
         </div>
 
+        <div class="goal-container">
+            <div class="label">Goal Tracking: Target $250,000</div>
+            <div class="progress-bar"><div class="progress-fill"></div></div>
+            <div style="display:flex; justify-content:space-between;">
+                <span class="sub-rm">{goal_pct:.1f}% Complete</span>
+                <span class="sub-rm">Distance: ${distance_usd:,.0f} USD (RM {distance_usd*myr_rate:,.0f})</span>
+            </div>
+        </div>
+
         <div class="section-label">Equity Assets</div>
         <table>
-            <thead><tr><th>Ticker</th><th>Market Val</th><th>P/L Absolute</th></tr></thead>
+            <thead><tr><th>Ticker</th><th>Avg Cost</th><th>Current Price</th><th>Market Val</th><th>P/L Absolute</th></tr></thead>
             <tbody>
                 {s_rows}
                 <tr class="total-row">
                     <td>EQUITY TOTAL</td>
-                    <td>${s_val:,.0f} <small>(RM {s_val*myr_rate:,.0f})</small></td>
-                    <td>${(s_val-s_cost):+,.0f} <small>(RM {(s_val-s_cost)*myr_rate:+,.0f})</small></td>
+                    <td class='mono'>-</td>
+                    <td class='mono'>-</td>
+                    <td class='mono'>${s_val:10,.0f} <small>(RM {s_val*myr_rate:,.0f})</small></td>
+                    <td class='mono'>${(s_val-s_cost):+10,.0f} <small>(RM {(s_val-s_cost)*myr_rate:+,.0f})</small></td>
                 </tr>
             </tbody>
         </table>
 
         <div class="section-label">Crypto Assets</div>
         <table>
-            <thead><tr><th>Asset</th><th>Market Val</th><th>P/L Absolute</th></tr></thead>
+            <thead><tr><th>Asset</th><th>Avg Cost</th><th>Current Price</th><th>Market Val</th><th>P/L Absolute</th></tr></thead>
             <tbody>
                 {c_rows}
                 <tr class="total-row">
                     <td>CRYPTO TOTAL</td>
-                    <td>${c_val:,.0f} <small>(RM {c_val*myr_rate:,.0f})</small></td>
-                    <td>${(c_val-c_cost):+,.0f} <small>(RM {(c_val-c_cost)*myr_rate:+,.0f})</small></td>
+                    <td class='mono'>-</td>
+                    <td class='mono'>-</td>
+                    <td class='mono'>${c_val:10,.0f} <small>(RM {c_val*myr_rate:,.0f})</small></td>
+                    <td class='mono'>${(c_val-c_cost):+10,.0f} <small>(RM {(c_val-c_cost)*myr_rate:+,.0f})</small></td>
                 </tr>
             </tbody>
         </table>

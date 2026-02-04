@@ -11,15 +11,19 @@
             body { background: var(--bg); color: #000; font-family: 'Inter', sans-serif; margin: 0; padding: 25px; }
             .sync-remark { color: var(--orange); font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; margin-bottom: 5px; text-transform: uppercase; }
             header { font-family: 'JetBrains Mono', monospace; font-size: 14px; border: 1.5px solid #000; display: inline-block; padding: 6px 15px; margin-bottom: 30px; font-weight: 700; }
-            .summary { display: flex; flex-wrap: wrap; border-top: 2.2px solid #000; margin-bottom: 40px; }
+            .summary { display: flex; flex-wrap: wrap; border-top: 2.2px solid #000; margin-bottom: 20px; }
             .item { flex: 1; min-width: 150px; padding: 25px 0; border-right: 1px solid #f0f0f0; }
             .label { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; color: var(--sub); text-transform: uppercase; margin-bottom: 8px; }
             .val { font-family: 'JetBrains Mono', monospace; font-size: 26px; font-weight: 700; letter-spacing: -1px; }
             .sub-rm { font-size: 11px; color: var(--sub); font-family: 'JetBrains Mono', monospace; margin-top: 4px; display: block; }
+            .goal-container { margin-bottom: 40px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+            .progress-bar { width: 100%; height: 8px; background: #eee; border-radius: 4px; overflow: hidden; margin: 10px 0; }
+            .progress-fill { width: 21.114115720800005%; height: 100%; background: #000; transition: width 0.5s ease; }
             .section-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; border-bottom: 1.5px solid #000; padding-bottom: 6px; margin: 40px 0 15px 0; text-transform: uppercase; }
             table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
             th { text-align: left; font-size: 10px; color: #999; text-transform: uppercase; padding-bottom: 10px; font-weight: 400; }
             td { padding: 14px 0; border-bottom: 1px solid #f0f0f0; font-size: 13px; }
+            .mono { font-family: 'JetBrains Mono', monospace; white-space: pre; }
             small { font-family: 'JetBrains Mono', monospace; color: #888; font-size: 10px; margin-left: 8px; }
             .asset { display: flex; align-items: center; gap: 10px; font-weight: 600; }
             .asset img { width: 22px; height: 22px; border-radius: 50%; border: 1px solid #eee; background: #fff; }
@@ -28,53 +32,107 @@
             .total-row small { color: #bbb; }
             .hist-table { background: var(--table-grey); }
             .hist-table td { padding: 15px 10px; border-bottom: 1px solid #ddd; }
-            .hist-table th { padding: 10px; }
         </style>
     </head>
     <body>
-        <div class="sync-remark">SYNC NODE MY // 2026-02-04 01:01 AM MYT</div>
+        <div class="sync-remark">SYNC NODE MY // 2026-02-04 10:55 AM MYT</div>
         <header>dimsum portfolio</header>
 
         <div class="summary">
             <div class="item">
                 <div class="label">Net Portfolio Value</div>
-                <div class="val">$53,141</div>
-                <span class="sub-rm">RM 209,480</span>
+                <div class="val">$52,785</div>
+                <span class="sub-rm">RM 207,620</span>
             </div>
             <div class="item" style="padding-left: 20px;">
                 <div class="label">Total Profit Loss</div>
-                <div class="val" style="color:#FF0000">-12,983</div>
-                <span class="sub-rm" style="color:#FF0000">-19.63% / RM -51,180</span>
+                <div class="val" style="color:#FF0000">-13,339</div>
+                <span class="sub-rm" style="color:#FF0000">-20.17% / RM -52,465</span>
             </div>
             <div class="item" style="padding-left: 20px;">
-                <div class="label">Total Liquidity</div>
+                <div class="label">Cash on Hand</div>
                 <div class="val">$2,540</div>
-                <span class="sub-rm">MYR 10,013</span>
+                <span class="sub-rm">MYR 9,991</span>
+            </div>
+        </div>
+
+        <div class="goal-container">
+            <div class="label">Goal Tracking: Target $250,000</div>
+            <div class="progress-bar"><div class="progress-fill"></div></div>
+            <div style="display:flex; justify-content:space-between;">
+                <span class="sub-rm">21.1% Complete</span>
+                <span class="sub-rm">Distance: $197,215 USD (RM 775,705)</span>
             </div>
         </div>
 
         <div class="section-label">Equity Assets</div>
         <table>
-            <thead><tr><th>Ticker</th><th>Market Val</th><th>P/L Absolute</th></tr></thead>
+            <thead><tr><th>Ticker</th><th>Avg Cost</th><th>Current Price</th><th>Market Val</th><th>P/L Absolute</th></tr></thead>
             <tbody>
-                <tr><td><div class='asset'><img src='https://img.logo.dev/ticker/NVDA?token=pk_demo' onerror="this.src='https://ui-avatars.com/api/?name=NVDA&background=000&color=fff'">NVDA</div></td><td>$12,807 <small>(RM 50,486)</small></td><td style='color:#008000;font-weight:700'>$+4,043 (+46%) <small style='color:#888'>[RM +15,938]</small></td></tr><tr><td><div class='asset'><img src='https://img.logo.dev/ticker/ACHR?token=pk_demo' onerror="this.src='https://ui-avatars.com/api/?name=ACHR&background=000&color=fff'">ACHR</div></td><td>$9,320 <small>(RM 36,740)</small></td><td style='color:#FF0000;font-weight:700'>$-1,131 (-11%) <small style='color:#888'>[RM -4,458]</small></td></tr><tr><td><div class='asset'><img src='https://img.logo.dev/ticker/AMD?token=pk_demo' onerror="this.src='https://ui-avatars.com/api/?name=AMD&background=000&color=fff'">AMD</div></td><td>$7,388 <small>(RM 29,124)</small></td><td style='color:#008000;font-weight:700'>$+3,506 (+90%) <small style='color:#888'>[RM +13,821]</small></td></tr>
+                
+            <tr>
+                <td><div class='asset'><img src='https://img.logo.dev/ticker/NVDA?token=pk_demo' onerror="this.src='https://ui-avatars.com/api/?name=NVDA&background=000&color=fff'">NVDA</div></td>
+                <td class='mono'>$    127.01</td>
+                <td class='mono'>$    180.34</td>
+                <td class='mono'>$    12,443 <small>(RM 48,944)</small></td>
+                <td class='mono' style='color:#008000;font-weight:700'>$    +3,679 (+42%) <small style='color:#888'>[RM +14,472]</small></td>
+            </tr>
+            <tr>
+                <td><div class='asset'><img src='https://img.logo.dev/ticker/ACHR?token=pk_demo' onerror="this.src='https://ui-avatars.com/api/?name=ACHR&background=000&color=fff'">ACHR</div></td>
+                <td class='mono'>$      7.91</td>
+                <td class='mono'>$      7.20</td>
+                <td class='mono'>$     9,518 <small>(RM 37,439)</small></td>
+                <td class='mono' style='color:#FF0000;font-weight:700'>$      -933 (-9%) <small style='color:#888'>[RM -3,668]</small></td>
+            </tr>
+            <tr>
+                <td><div class='asset'><img src='https://img.logo.dev/ticker/AMD?token=pk_demo' onerror="this.src='https://ui-avatars.com/api/?name=AMD&background=000&color=fff'">AMD</div></td>
+                <td class='mono'>$    129.40</td>
+                <td class='mono'>$    242.11</td>
+                <td class='mono'>$     7,263 <small>(RM 28,569)</small></td>
+                <td class='mono' style='color:#008000;font-weight:700'>$    +3,381 (+87%) <small style='color:#888'>[RM +13,300]</small></td>
+            </tr>
                 <tr class="total-row">
                     <td>EQUITY TOTAL</td>
-                    <td>$29,515 <small>(RM 116,349)</small></td>
-                    <td>$+6,418 <small>(RM +25,301)</small></td>
+                    <td class='mono'>-</td>
+                    <td class='mono'>-</td>
+                    <td class='mono'>$    29,225 <small>(RM 114,951)</small></td>
+                    <td class='mono'>$    +6,128 <small>(RM +24,104)</small></td>
                 </tr>
             </tbody>
         </table>
 
         <div class="section-label">Crypto Assets</div>
         <table>
-            <thead><tr><th>Asset</th><th>Market Val</th><th>P/L Absolute</th></tr></thead>
+            <thead><tr><th>Asset</th><th>Avg Cost</th><th>Current Price</th><th>Market Val</th><th>P/L Absolute</th></tr></thead>
             <tbody>
-                <tr><td><div class='asset'><img src='https://img.logo.dev/ticker/ETH?token=pk_demo' onerror="this.src='https://ui-avatars.com/api/?name=ETH&background=000&color=fff'">ETH</div></td><td>$8,735 <small>(RM 34,434)</small></td><td style='color:#FF0000;font-weight:700'>$-2,845 (-25%) <small style='color:#888'>[RM -11,215]</small></td></tr><tr><td><div class='asset'><img src='https://img.logo.dev/ticker/CRV?token=pk_demo' onerror="this.src='https://ui-avatars.com/api/?name=CRV&background=000&color=fff'">CRV</div></td><td>$10,237 <small>(RM 40,356)</small></td><td style='color:#FF0000;font-weight:700'>$-16,435 (-62%) <small style='color:#888'>[RM -64,785]</small></td></tr><tr><td><div class='asset'><img src='https://img.logo.dev/ticker/HBAR?token=pk_demo' onerror="this.src='https://ui-avatars.com/api/?name=HBAR&background=000&color=fff'">HBAR</div></td><td>$2,113 <small>(RM 8,329)</small></td><td style='color:#FF0000;font-weight:700'>$-122 (-5%) <small style='color:#888'>[RM -482]</small></td></tr>
+                
+            <tr>
+                <td><div class='asset'><img src='https://img.logo.dev/ticker/ETH?token=pk_demo' onerror="this.src='https://ui-avatars.com/api/?name=ETH&background=000&color=fff'">ETH</div></td>
+                <td class='mono'>$2,969.6572</td>
+                <td class='mono'>$2,241.4500</td>
+                <td class='mono'>$     8,740 <small>(RM 34,379)</small></td>
+                <td class='mono' style='color:#FF0000;font-weight:700'>$    -2,840 (-25%) <small style='color:#888'>[RM -11,169]</small></td>
+            </tr>
+            <tr>
+                <td><div class='asset'><img src='https://img.logo.dev/ticker/CRV?token=pk_demo' onerror="this.src='https://ui-avatars.com/api/?name=CRV&background=000&color=fff'">CRV</div></td>
+                <td class='mono'>$    0.7357</td>
+                <td class='mono'>$    0.2801</td>
+                <td class='mono'>$    10,154 <small>(RM 39,939)</small></td>
+                <td class='mono' style='color:#FF0000;font-weight:700'>$   -16,518 (-62%) <small style='color:#888'>[RM -64,970]</small></td>
+            </tr>
+            <tr>
+                <td><div class='asset'><img src='https://img.logo.dev/ticker/HBAR?token=pk_demo' onerror="this.src='https://ui-avatars.com/api/?name=HBAR&background=000&color=fff'">HBAR</div></td>
+                <td class='mono'>$    0.0952</td>
+                <td class='mono'>$    0.0906</td>
+                <td class='mono'>$     2,126 <small>(RM 8,361)</small></td>
+                <td class='mono' style='color:#FF0000;font-weight:700'>$      -109 (-5%) <small style='color:#888'>[RM -430]</small></td>
+            </tr>
                 <tr class="total-row">
                     <td>CRYPTO TOTAL</td>
-                    <td>$21,085 <small>(RM 83,118)</small></td>
-                    <td>$-19,402 <small>(RM -76,481)</small></td>
+                    <td class='mono'>-</td>
+                    <td class='mono'>-</td>
+                    <td class='mono'>$    21,020 <small>(RM 82,678)</small></td>
+                    <td class='mono'>$   -19,467 <small>(RM -76,569)</small></td>
                 </tr>
             </tbody>
         </table>
@@ -82,7 +140,7 @@
         <div class="section-label">Daily History Log</div>
         <table class="hist-table">
             <thead><tr><th>Date</th><th>Net Value</th><th>Total P/L</th></tr></thead>
-            <tbody><tr><td>2026-02-04</td><td>$53,141 <small>(RM 209,480)</small></td><td style='color:#FF0000'>$-12,983 <small style='color:#888'>[RM -51,180]</small></td></tr><tr><td>2026-02-03</td><td>$53,491 <small>(RM 210,863)</small></td><td style='color:#FF0000'>$-12,633 <small style='color:#888'>[RM -49,798]</small></td></tr></tbody>
+            <tbody><tr><td>2026-02-04</td><td class='mono'>$    52,785 <small>(RM 207,620)</small></td><td class='mono' style='color:#FF0000'>$   -13,339 <small style='color:#888'>[RM -52,465]</small></td></tr><tr><td>2026-02-03</td><td class='mono'>$    53,491 <small>(RM 210,398)</small></td><td class='mono' style='color:#FF0000'>$   -12,633 <small style='color:#888'>[RM -49,688]</small></td></tr></tbody>
         </table>
     </body>
     </html>

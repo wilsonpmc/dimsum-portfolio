@@ -2,11 +2,12 @@ name: Daily Sync
 
 on:
   schedule:
-    - cron: '0 16 * * *' # Runs at 12:00 AM Malaysian Time
-  workflow_dispatch: # Allows you to run it manually
+    # 6:00 AM Malaysia Time (MYT) is 10:00 PM UTC
+    - cron: '0 22 * * *' 
+  workflow_dispatch: # Allows you to run it manually whenever you want
 
 permissions:
-  contents: write # Crucial: Allows the bot to save your history.json
+  contents: write
 
 jobs:
   build:
@@ -35,5 +36,5 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git add index.html history.json
-          git commit -m "Locked daily history update: $(date)" || echo "No changes to commit"
+          git commit -m "Daily Sync at 6AM MYT: $(date)" || echo "No changes to commit"
           git push
